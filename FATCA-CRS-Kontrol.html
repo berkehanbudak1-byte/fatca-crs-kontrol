@@ -531,7 +531,7 @@ function listBlock(title, items, cls, emptyText) {
   for (const it of items) {
     const li = el("li", cls);
     li.appendChild(el("span", "rule", it.rule));
-    li.appendChild(document.createTextNode(it.msg || it.doc));
+    li.appendChild(document.createTextNode(trMsg(it.msg || it.doc)));
     ul.appendChild(li);
   }
   wrap.appendChild(ul);
@@ -556,7 +556,7 @@ function render(out) {
     for (const d of out.docs) {
       const li = el("li", "doc");
       li.appendChild(el("span", "rule", d.rule));
-      li.appendChild(document.createTextNode(d.doc));
+      li.appendChild(document.createTextNode(trMsg(d.doc)));
       ul.appendChild(li);
     }
     box.appendChild(ul);
@@ -688,6 +688,107 @@ const EN_TEXT = {
   "Türkiye'nin CRS ortakları listesi GİB'in 2023 tarihli rehberinden (Yayın 485, Ek 2) alınmıştır. Güncel değil olabilir. Kullanmadan önce GİB'in güncel rehberiyle karşılaştırın.": "Turkey's CRS partner list is taken from the 2023 GİB guide (Publication 485, Annex 2). It may be out of date. Compare it with the current GİB guide before use.",
   "Bu sürümde ülke TIN format kuralları yoktur; TIN'ler elle doğrulanır.": "This version has no country TIN format rules; TINs are verified manually."
 };
+// ===== English rule messages and documents (display only; engine logic is unchanged) =====
+const EN_MSG = {
+  "ABD kişi testi pozitif (yeşil kart ya da 183 gün) ama ABD kişisi beyan edilmemiş.": "US person test is positive (green card or 183 days) but no US person declaration was made.",
+  "ABD kişi testi pozitif: W-9 ve ABD TIN'inin alınması gerekir.": "US person test is positive: a W-9 and a US TIN are required.",
+  "ABD göstergesi cure ya da recalcitrant adımlarına karar gerektirebilir.": "The US indicia may require a decision on cure or recalcitrant steps.",
+  "ABD doğum yeri cure: non-US vatandaşlık belgesi ve Certificate of Loss of Nationality ya da açıklama gerekiyor.": "US place of birth cure: a non-US citizenship document and a Certificate of Loss of Nationality, or an explanation, are required.",
+  "Telefon +1 ile başlıyor, ABD ya da Kanada olabilir. Yabancı numara varsa cure farklı.": "Phone starts with +1; it may be US or Canadian. If it is a foreign number, the cure differs.",
+  "Care-of adres tek adres. Kural bu durumda geçerli, cure gerekir.": "The care-of address is the only address. The rule applies and a cure is required.",
+  "ABD adresi, sabit talimat ya da vekil bilgisi hesap kayıtlarıyla doğrulanmalı.": "US address, standing instruction or attorney details must be verified against account records.",
+  "Yeni hesap açılış ve idame bilgilerinin gözden geçirilmesi manuel yapılmalı.": "Account opening and maintenance information must be reviewed manually.",
+  "ABD TIN'i SSN (XXX-XX-XXXX) ya da ITIN biçiminde olmalı.": "US TIN must be in SSN (XXX-XX-XXXX) or ITIN format.",
+  "Ad soyad eksik.": "Name is missing.",
+  "Hesap sahibi türü 'individual' ya da 'entity' olmalı.": "Account holder type must be 'individual' or 'entity'.",
+  "Vergi ikametgâh ülkesi geçerli ISO kodu olmalı (örn. TR).": "Tax residence country must be a valid ISO code (e.g. TR).",
+  "Beyan imzalanmamış ya da onaylanmamış.": "The declaration is not signed or confirmed.",
+  "İmza yoksa geçici prosedür uygulanıp uygulanmayacağına karar verilmeli.": "If unsigned, decide whether a temporary procedure applies.",
+  "Beyan tarihi geçersiz (YYYY-MM-DD).": "Declaration date is invalid (YYYY-MM-DD).",
+  "Beyan tarihi gelecekte görünüyor.": "Declaration date appears to be in the future.",
+  "Beyan bir yıldan eski, yenilenmesi gerekebilir.": "The declaration is over a year old and may need renewal.",
+  "Gerçek kişi için doğum tarihi zorunlu ve geçerli olmalı.": "A valid date of birth is required for individuals.",
+  "Doğum tarihi gelecekte görünüyor.": "Date of birth appears to be in the future.",
+  "Doğum tarihi makul aralığın dışında.": "Date of birth is outside a reasonable range.",
+  "18 yaşından küçük, vasi beyanı gerekebilir.": "Under 18; a guardian declaration may be required.",
+  "Vergi ikametgâh listesi boş (ADGM: beyan 'vergi ikametgâhı yok' ise adres ile çelişki olup olmadığına bakılmalı).": "The tax residence list is empty (ADGM: if the declaration says no tax residence, check for conflicts with the address).",
+  "Vergi ikametgâh listesinde geçersiz ülke kodu var.": "The tax residence list contains an invalid country code.",
+  "Beyan edilen ikametgâh ülkesi vergi ikametgâh listesinde yok.": "The declared residence country is not in the tax residence list.",
+  "Adres ülkesi eksik (tamlık kontrolü).": "Address country is missing (completeness check).",
+  "Adres ülkesi ile vergi ikametgâh ülkesi çelişiyor (BNZ tutarlılık kontrolü).": "Address country conflicts with the tax residence country (BNZ consistency check).",
+  "Kontrol eden kişiler (controlling persons) ve rolleri belirlendi mi, bilgileri eksiksiz mi?": "Have the controlling persons and their roles been identified, and is their information complete?",
+  "TIN yok ve geçerli neden kodu (A, B veya C) girilmemiş.": "No TIN and no valid reason code (A, B or C) entered.",
+  "Neden kodu B için TIN alınamamasının açıklaması zorunlu.": "An explanation is required for reason code B.",
+  "TIN ve neden kodu birlikte girilmiş. Yalnızca biri olmalı (BNZ tutarlılık kontrolü).": "Both a TIN and a reason code were entered. Only one should be filled (BNZ consistency check).",
+  "TIN biçimi geçersiz (4-25 karakter, harf, rakam, tire).": "Invalid TIN format (4-25 characters: letters, digits, hyphens).",
+  "Açılış (KYC) ülkesi ile beyan edilen ikametgâh ülkesi farklı.": "Opening (KYC) country differs from the declared residence country.",
+  "Açılış (KYC) ülkesi yok, makululuk testi tamamlanamadı.": "Opening (KYC) country is missing; the reasonableness test could not be completed.",
+  "Müşterinin kimlik belgesi (pasaport/kimlik) doğrulandı mı?": "Has the customer's identity document (passport or ID) been verified?",
+  "İstenecek belgeler ve bilgiler": "Documents and information to request",
+  "İmzalayan yetkilinin ad, ünvan ve sıfatı kayıtlı mı? Kuruluş tarihi/ülkesi, kayıt veya lisans no, e-posta ve telefon alındı mı?": "Are the signatory's name, title and capacity recorded? Have the incorporation date and country, registration or licence number, email and phone been obtained?",
+  "Test başarısız: yeni geçerli beyan ya da belgeli makul açıklama istenmeli.": "Test failed: a new valid declaration or a documented reasonable explanation is required.",
+  // Belgeler (DOCS)
+  "İmzalı, tarihli ve eksiksiz CRS self-certification formu": "Signed, dated and complete CRS self-certification form",
+  "Açılış (KYC) ülkesini gösteren kimlik ya da adres belgesi": "ID or address document showing the opening (KYC) country",
+  "Açılış ülkesiyle uyumlu yeni self-certification ya da ikametgâh kanıtı": "New self-certification or residence proof consistent with the opening country",
+  "Yeni geçerli beyan ya da belgeli makul açıklama": "New valid declaration or a documented reasonable explanation",
+  "Vergi ikametgâhı belgesi ve güncel vergi ikametgâh listesi": "Tax residence certificate and an up-to-date tax residence list",
+  "TIN, ya da geçerli neden kodu (A, B, C); B için yazılı açıklama": "TIN, or a valid reason code (A, B, C); written explanation for B",
+  "TIN'in ülkenin resmi formatına göre elle doğrulanması (bu araçta o ülkenin tablosu yok)": "Manual check of the TIN against the country's official format (this tool has no table for that country)",
+  "Geçici prosedür kararı ve imzalı beyan": "Decision on a temporary procedure and a signed declaration",
+  "ABD kişisi beyanı (W-9) ya da non-US beyanı (W-8BEN)": "US person declaration (W-9) or non-US declaration (W-8BEN)",
+  "Non-US vatandaşlık belgesi ve Certificate of Loss of Nationality ya da açıklama": "Non-US citizenship document and Certificate of Loss of Nationality, or an explanation",
+  "ABD adresinin hesap kayıtlarıyla doğrulanması": "Verification of the US address against account records",
+  "Telefon numarasının hangi ülkeye ait olduğunu gösteren belge ya da açıklama": "Document or explanation showing which country the phone number belongs to",
+  "Sabit ödeme talimatının iptali ya da ABD dışı hesaba yönlendirme kaydı": "Cancellation of the standing payment instruction, or a record of redirection to a non-US account",
+  "Vekil ya da imza yetkilisinin non-US adres belgesi": "Non-US address document for the attorney or signatory",
+  "Care-of adres yerine kalıcı ikametgâh kanıtı": "Proof of permanent residence instead of a care-of address",
+  "Cure ya da recalcitrant adımları için uzman kararı": "Expert decision on cure or recalcitrant steps",
+  "Kontrol eden kişilerin kimlik ve rol bilgileri ile kayıtları": "Identity and role details, and records, of the controlling persons",
+  "CBI/RBI ek due diligence: müşteri görüşmesi kaydı ve yanıtlar, ikametgâh/vatandaşlık ve vergi beyanı belgeleri": "CBI/RBI additional due diligence: interview record and answers, residence/citizenship and tax return documents",
+  "OECD AEOI TIN sayfası ile neden kodu A'nın doğrulama kaydı": "Record of checking reason code A against the OECD AEOI TIN page",
+  "Yabancı telefonun ikametgâh ile ilişkisini gösteren belge ya da yeni self-certification (CRS gösterge c)": "Document or new self-certification showing the link between the foreign phone and residence (CRS indicium c)",
+  "Tek isimli müşterinin kimlik belgesi (ad NFN, soyad olarak raporlama kaydı)": "ID document of the single-name customer (first name NFN, surname as the name; reporting record)",
+  "Yabancı adresin ikametgâh ile ilişkisini gösteren belge ya da self-certification (CRS gösterge b)": "Document or self-certification showing the link between the foreign address and residence (CRS indicium b)",
+  "Kurumun yerel raporlanabilir ülke listesi ile değişim anlaşmasının doğrulama kaydı (OECD taahhüdü tek başına yeterli değil)": "Record verifying the institution's local reportable jurisdiction list and exchange agreement (an OECD commitment alone is not enough)",
+  // Göstergeler (indicia etiketleri, liste içinde geçer)
+  "ABD vatandaşlığı": "US citizenship",
+  "ABD ikametgâhı": "US residence",
+  "ABD doğum yeri": "US place of birth",
+  "Mevcut ABD adresi": "Current US address",
+  "ABD posta kutusu": "US P.O. box",
+  "ABD telefonu (+1)": "US phone (+1)",
+  "ABD hesabına sabit ödeme talimatı": "Standing payment instruction to a US account",
+  "ABD adresli vekil ya da imza yetkilisi": "Attorney or signatory with a US address",
+  "Care-of adres tek adres olarak kullanılıyor": "Care-of address used as the only address"
+};
+const EN_PATTERNS = [
+  [/^ABD ikametgâhı var ama ABD kişisi beyan edilmemiş: (.*)$/s, (m) => "US residence but no US person declaration: " + enIndicia(m[1])],
+  [/^ABD göstergeleri var, ABD kişisi beyan edilmemiş: (.*)$/s, (m) => "US indicia present, no US person declaration: " + enIndicia(m[1])],
+  [/^(\S+) için neden kodu A seçildi\. .*$/s, (m) => "Reason code A selected for " + m[1] + ". Check on the OECD AEOI TIN page whether the country issues TINs."],
+  [/^(.+?) için TIN formatı bu araçta tanımlı değil, elle kontrol edilmeli\.$/s, (m) => "No TIN format rule in this tool for " + m[1] + "; check manually."],
+  [/^CBI\/RBI yüksek riskli ülke \((.*?)\): .*$/s, (m) => "High-risk CBI/RBI country (" + m[1] + "): additional due diligence required. Ask: did the customer obtain residence rights through CBI/RBI? Do they hold residence rights elsewhere? Did they spend more than 90 days elsewhere last year? In which countries did they file personal income tax returns last year?"],
+  [/^CRS göstergesi \(c\): TR dışında telefon \((.*?)\) var.*$/s, (m) => "CRS indicium (c): non-Turkish phone (" + m[1] + ") present, no Turkish phone, and this country is not among the declared residences. Close with documents or a new declaration."],
+  [/^Raporlanabilir ülke kontrolü: (.*?) Türkiye'nin CRS ortak listesinde \(GİB 2023\) yok\..*$/s, (m) => "Reportable jurisdiction check: " + m[1] + " is not on Turkey's CRS partner list (GİB 2023). Verify the exchange agreement and the current list manually."],
+  [/^CRS göstergesi \(b\): güncel adres TR dışında \((.*?)\)\..*$/s, (m) => "CRS indicium (b): current address outside Turkey (" + m[1] + "). Close with documents or a declaration explaining the residence."]
+];
+function enIndicia(text) {
+  let out = text;
+  for (const [tr, en] of Object.entries(EN_MSG)) {
+    if (tr.length < 60 && out.includes(tr)) out = out.split(tr).join(en);
+  }
+  return out;
+}
+function trMsg(s) {
+  if (LANG !== "en" || typeof s !== "string") return s;
+  if (EN_MSG[s]) return EN_MSG[s];
+  for (const [re, fn] of EN_PATTERNS) {
+    const m = s.match(re);
+    if (m) return fn(m);
+  }
+  return s;
+}
+
 const TR_ORIG = new Map();
 let LANG = "tr";
 function applyLang(lang) {
@@ -706,7 +807,7 @@ function applyLang(lang) {
   document.documentElement.lang = lang;
   $("lang").textContent = lang === "en" ? "Türkçe" : "English";
 }
-$("lang").addEventListener("click", () => { LANG = LANG === "tr" ? "en" : "tr"; applyLang(LANG); });
+$("lang").addEventListener("click", () => { LANG = LANG === "tr" ? "en" : "tr"; applyLang(LANG); if (document.querySelector("#results .verdict")) run(); applyLang(LANG); });
 ["run", "sample", "clear"].forEach((id) => $(id).addEventListener("click", () => setTimeout(() => applyLang(LANG), 0)));
 </script>
 <footer style="margin-top:24px;font-size:12px;color:#555;line-height:1.5">

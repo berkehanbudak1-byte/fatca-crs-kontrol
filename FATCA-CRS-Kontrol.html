@@ -44,6 +44,7 @@
 <body>
 <header>
   <h1>FATCA / CRS Müşteri Kontrolü</h1>
+  <button type="button" id="lang" style="float:right;margin-top:-44px">English</button>
   <p>Ön kontroldür, hukuki karar değildir. Veriler yalnızca bu sayfada işlenir, hiçbir yere gönderilmez.</p>
 </header>
 
@@ -613,6 +614,100 @@ function clearForm() {
 $("run").addEventListener("click", run);
 $("sample").addEventListener("click", fillSample);
 $("clear").addEventListener("click", clearForm);
+
+// ===== English UI. Rule messages (F/C/R details) remain in Turkish in this version. =====
+const EN_TEXT = {
+  "FATCA / CRS Müşteri Kontrolü": "FATCA / CRS Customer Check",
+  "Ön kontroldür, hukuki karar değildir. Veriler yalnızca bu sayfada işlenir, hiçbir yere gönderilmez.": "A pre-check only, not a legal decision. Data is processed on this page only and is not sent anywhere.",
+  "1. Müşteri bilgileri": "1. Customer details",
+  "Ad soyad": "Full name",
+  "Hesap türü": "Account type",
+  "Gerçek kişi": "Individual",
+  "Tüzel kişi": "Entity",
+  "Doğum tarihi": "Date of birth",
+  "gerçek kişi için (YYYY-MM-DD)": "for individuals (YYYY-MM-DD)",
+  "Beyan tarihi": "Declaration date",
+  "(YYYY-MM-DD)": "(YYYY-MM-DD)",
+  "Beyan imzalı ve onaylı": "Declaration signed and confirmed",
+  "2. Vergi ikametgâhı ve TIN": "2. Tax residence and TIN",
+  "Vergi ikametgâh ülkesi": "Tax residence country",
+  "ISO kodu, örn. TR, US, DE": "ISO code, e.g. TR, US, DE",
+  "Tüm vergi ikametgâh ülkeleri": "All tax residence countries",
+  "virgülle, örn. TR, DE": "comma-separated, e.g. TR, DE",
+  "TIN (vergi numarası)": "TIN (tax number)",
+  "boş bırakılabilir": "may be left empty",
+  "TIN yok ise neden kodu": "Reason code if no TIN",
+  "— seçiniz —": "— select —",
+  "A: Ülke TIN vermiyor": "A: Country does not issue TINs",
+  "B: Müşteri TIN alamadı": "B: Customer could not obtain a TIN",
+  "C: TIN gerekmiyor": "C: TIN not required",
+  "Neden kodu B ise açıklama": "Explanation if reason B",
+  "Bu ülke TIN veriyor": "This country issues TINs",
+  "3. Adres ve kurum bilgisi": "3. Address and institution",
+  "Adres ülkesi": "Address country",
+  "Hesap açılış (KYC) ülkesi": "Account opening (KYC) country",
+  "Posta kutusu": "P.O. box",
+  "Care-of adres": "Care-of address",
+  "Bu tek adres": "This is the only address",
+  "4. ABD bağlantıları (FATCA)": "4. US links (FATCA)",
+  "Vatandaşlık": "Citizenship",
+  "ISO kodu": "ISO code",
+  "Doğum ülkesi": "Country of birth",
+  "Telefon numaraları": "Phone numbers",
+  "virgülle": "comma-separated",
+  "ABD doğum yeri ise cure belgesi açıklaması": "Cure document note if US birthplace",
+  "Müşteri ABD kişisi olarak beyan etti": "Customer declared as a US person",
+  "ABD hesabına sabit ödeme talimatı var": "Standing payment instruction to a US account",
+  "ABD adresli vekil ya da imza yetkilisi var": "Attorney or signatory with a US address",
+  "ABD yeşil kart (LPR) sahibi": "US green card (LPR) holder",
+  "Cari yılda ABD'de 183+ gün": "183+ days in the US in the current year",
+  "Kontrol et": "Check",
+  "Örnek doldur": "Fill sample",
+  "Temizle": "Clear",
+  "Formu doldurup \"Kontrol et\" düğmesine basın. Sonuç ve istenecek belgeler burada görünecek.": "Fill in the form and press \"Check\". The result and required documents will appear here.",
+  "MANUEL İNCELEME GEREKİYOR": "MANUAL REVIEW REQUIRED",
+  "MAKUL DEĞİL": "NOT REASONABLE",
+  "MAKUL": "REASONABLE",
+  "Otomatik karar verilemedi, aşağıdaki maddeleri belgeyle kapatın.": "No automatic decision. Close the items below with documents.",
+  "Formda düzeltilmesi gereken hatalar var.": "The form has errors to fix.",
+  "Ön kontrolde hata ya da eksik bulunmadı.": "No errors or gaps found in the pre-check.",
+  "İstenecek belgeler ve bilgiler": "Documents and information to request",
+  "Ek belge gerektiren bir madde yok.": "No additional documents required.",
+  "Kural bazında ayrıntı": "Details by rule",
+  "HATA YOK": "NO ERRORS",
+  "HATA VAR": "ERRORS",
+  "Hatalar": "Errors",
+  "Uyarılar": "Warnings",
+  "Manuel inceleme": "Manual review",
+  "Hata yok.": "No errors.",
+  "Uyarı yok.": "No warnings.",
+  "Manuel madde yok.": "No manual items.",
+  "Yasal uyarı:": "Disclaimer:",
+  "Bu araç bir ön kontroldür, hukuki, vergi ya da uyum kararı değildir. Sonuçlar bir uzmanın değerlendirmesinin yerine geçmez.": "This tool is a pre-check, not a legal, tax or compliance decision. Results do not replace a professional's assessment.",
+  "Ortak ülke listesi:": "Partner country list:",
+  "Türkiye'nin CRS ortakları listesi GİB'in 2023 tarihli rehberinden (Yayın 485, Ek 2) alınmıştır. Güncel değil olabilir. Kullanmadan önce GİB'in güncel rehberiyle karşılaştırın.": "Turkey's CRS partner list is taken from the 2023 GİB guide (Publication 485, Annex 2). It may be out of date. Compare it with the current GİB guide before use.",
+  "Bu sürümde ülke TIN format kuralları yoktur; TIN'ler elle doğrulanır.": "This version has no country TIN format rules; TINs are verified manually."
+};
+const TR_ORIG = new Map();
+let LANG = "tr";
+function applyLang(lang) {
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  for (const n of nodes) {
+    const tag = n.parentNode && n.parentNode.tagName;
+    if (tag === "SCRIPT" || tag === "STYLE") continue;
+    if (!TR_ORIG.has(n)) TR_ORIG.set(n, n.nodeValue);
+    const orig = TR_ORIG.get(n);
+    const key = orig.trim();
+    const out = lang === "en" && key && EN_TEXT[key] ? orig.replace(key, EN_TEXT[key]) : orig;
+    if (n.nodeValue !== out) n.nodeValue = out;
+  }
+  document.documentElement.lang = lang;
+  $("lang").textContent = lang === "en" ? "Türkçe" : "English";
+}
+$("lang").addEventListener("click", () => { LANG = LANG === "tr" ? "en" : "tr"; applyLang(LANG); });
+["run", "sample", "clear"].forEach((id) => $(id).addEventListener("click", () => setTimeout(() => applyLang(LANG), 0)));
 </script>
 <footer style="margin-top:24px;font-size:12px;color:#555;line-height:1.5">
   <p><strong>Yasal uyarı:</strong> Bu araç bir ön kontroldür, hukuki, vergi ya da uyum kararı değildir. Sonuçlar bir uzmanın değerlendirmesinin yerine geçmez.</p>

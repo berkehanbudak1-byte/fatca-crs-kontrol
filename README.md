@@ -42,7 +42,8 @@ Tek dosyalık, çevrimdışı çalışan bir ön kontrol aracı. Bir müşterini
 ## Sınırlar
 
 - Tamamen format ve tutarlılık kontrolü yapar. TIN'in müşteriye ait olduğunu, kimlik belgesinin gerçekliğini, neden kodu A'nın doğruluğunu doğrulayamaz; bunlar manuel maddedir.
-- Ortak ülke listesi 2023 tarihlidir. Kullanmadan önce güncel GİB rehberiyle karşılaştırın.
+- Ortak ülke listesi 2023 tarihlidir ve güncel değildir. Güncel liste için OECD Automatic Exchange Portal'da Türkiye'yi seçerek kontrol edin.
+- Sonuç her zaman bir uzman tarafından onaylanmalıdır. Yüksek değerli hesaplarda ilişki yöneticisinin durumu da değerlendirilmelidir.
 - Yerel kurum listeleri ve değişim anlaşmalarının aktivasyonu kurumdan kuruma değişir.
 - FATCA kuralları IRS'in tam metninin özetine dayanır; belge ve cure ayrıntıları uzman tarafından doğrulanmalıdır.
 - Çift ikametgâh için her ülkeye ayrı TIN alanı yoktur; tek TIN girilir.

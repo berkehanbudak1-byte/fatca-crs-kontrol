@@ -101,6 +101,8 @@
       <label class="c"><input type="checkbox" id="isPoBox"> Posta kutusu</label>
       <label class="c"><input type="checkbox" id="careOf"> Care-of adres</label>
       <label class="c"><input type="checkbox" id="soleAddress"> Bu tek adres</label>
+      <label class="c"><input type="checkbox" id="highValue"> Yüksek değerli hesap</label>
+      <label class="c"><input type="checkbox" id="rmKnowsReportable"> İlişki yöneticisi müşterinin raporlanabilir kişi olduğunu biliyor</label>
     </div>
   </section>
 
@@ -378,6 +380,9 @@ function validateCrs(form, options = {}) {
   if (notPartner.length > 0) {
     add(manual, "R9", `Raporlanabilir ülke kontrolü: ${notPartner.join(", ")} Türkiye'nin CRS ortak listesinde (GİB 2023) yok. Değişim anlaşması ve güncel liste elle doğrulanmalı.`);
   }
+  // R10: ilişki yöneticisi bilgisi ve yüksek değerli hesap incelemesi
+  if (form.rmKnowsReportable === true) add(errors, "R10", "İlişki yöneticisi müşterinin raporlanabilir kişi olduğunu biliyor; beyan güvenilir kabul edilemez (reason to know).");
+  if (form.highValue === true) add(manual, "R10", "Yüksek değerli hesap: ilişki yöneticisi incelemesi ve insan onayı gerekli.");
   // CRS göstergesi (b): kurumun ülkesi dışında güncel adres
   if (form.address && isIso2(form.address.country) && form.address.country !== RFI_COUNTRY
       && !(form.taxResidences || []).includes(form.address.country)) {
@@ -409,6 +414,7 @@ const DOCS = {
   R6: "Yabancı telefonun ikametgâh ile ilişkisini gösteren belge ya da yeni self-certification (CRS gösterge c)",
   R8: "Yabancı adresin ikametgâh ile ilişkisini gösteren belge ya da self-certification (CRS gösterge b)",
   R9: "Kurumun yerel raporlanabilir ülke listesi ile değişim anlaşmasının doğrulama kaydı (OECD taahhüdü tek başına yeterli değil)",
+  R10: "İlişki yöneticisinin değerlendirme notu ve yüksek değerli hesap incelemesi kaydı",
   R7: "Tek isimli müşterinin kimlik belgesi (ad NFN, soyad olarak raporlama kaydı)",
   F1: "ABD kişisi beyanı (W-9) ya da non-US beyanı (W-8BEN)",
   F2: "Non-US vatandaşlık belgesi ve Certificate of Loss of Nationality ya da açıklama",
@@ -473,6 +479,8 @@ function buildForm(v) {
     phones: list(v.phones),
     usPersonDeclared: v.usPersonDeclared === true,
     usGreenCard: v.usGreenCard === true,
+    highValue: v.highValue === true,
+    rmKnowsReportable: v.rmKnowsReportable === true,
     usDays183: v.usDays183 === true,
     standingUsInstructions: v.standingUs === true ? [{}] : [],
     usPoaOrSigners: v.usPoa === true ? [{ usAddress: true }] : [],
@@ -512,7 +520,8 @@ function readValues() {
     citizenship: v.citizenship, birthCountry: v.birthCountry, phones: v.phones,
     cureDocs: v.cureDocs, usPersonDeclared: v.usPersonDeclared,
     standingUs: v.standingUs, usPoa: v.usPoa,
-    usGreenCard: v.usGreenCard, usDays183: v.usDays183
+    usGreenCard: v.usGreenCard, usDays183: v.usDays183,
+    highValue: v.highValue, rmKnowsReportable: v.rmKnowsReportable
   };
 }
 
@@ -661,6 +670,8 @@ const EN_TEXT = {
   "ABD adresli vekil ya da imza yetkilisi var": "Attorney or signatory with a US address",
   "ABD yeşil kart (LPR) sahibi": "US green card (LPR) holder",
   "Cari yılda ABD'de 183+ gün": "183+ days in the US in the current year",
+  "Yüksek değerli hesap": "High-value account",
+  "İlişki yöneticisi müşterinin raporlanabilir kişi olduğunu biliyor": "Relationship manager knows the customer is a reportable person",
   "Kontrol et": "Check",
   "Örnek doldur": "Fill sample",
   "Temizle": "Clear",
@@ -702,6 +713,9 @@ const EN_MSG = {
   "Yeni hesap açılış ve idame bilgilerinin gözden geçirilmesi manuel yapılmalı.": "Account opening and maintenance information must be reviewed manually.",
   "ABD TIN'i SSN (XXX-XX-XXXX) ya da ITIN biçiminde olmalı.": "US TIN must be in SSN (XXX-XX-XXXX) or ITIN format.",
   "Ad soyad eksik.": "Name is missing.",
+  "İlişki yöneticisi müşterinin raporlanabilir kişi olduğunu biliyor; beyan güvenilir kabul edilemez (reason to know).": "The relationship manager knows the customer is a reportable person; the declaration cannot be relied on (reason to know).",
+  "Yüksek değerli hesap: ilişki yöneticisi incelemesi ve insan onayı gerekli.": "High-value account: relationship manager review and human approval are required.",
+  "İlişki yöneticisinin değerlendirme notu ve yüksek değerli hesap incelemesi kaydı": "Relationship manager assessment note and high-value account review record",
   "Hesap sahibi türü 'individual' ya da 'entity' olmalı.": "Account holder type must be 'individual' or 'entity'.",
   "Vergi ikametgâh ülkesi geçerli ISO kodu olmalı (örn. TR).": "Tax residence country must be a valid ISO code (e.g. TR).",
   "Beyan imzalanmamış ya da onaylanmamış.": "The declaration is not signed or confirmed.",

@@ -221,8 +221,11 @@ const REASON_CODES = new Set(["A", "B", "C"]);
 const CHECKLIST_ONLY = ["F9", "R4", "R5"];
 // Kurumun (banka) ülkesi: CRS göstergeleri bu ülkeye göre değerlendirilir
 const RFI_COUNTRY = "TR";
-// Türkiye'nin CRS Çok Taraflı Yetkili Makam Anlaşması ortakları (GİB rehberi, Yayın 485, 2023, Ek 2: 120 ülke).
-// Liste zamanla değişir; kullanmadan önce GİB'in güncel rehberiyle karşılaştırılmalı. TR kendi listesinde yer alır.
+// R9 için asıl liste: GİB'in internet sitesinde yayımlanan "bildirim yapılan ülke" listesi (Mukimlik Kılavuzu Madde 76(1)).
+// Liste GİB'den alınıp buraya yazılana kadar boş; boşken aşağıdaki 2023 listesi kullanılır.
+const TR_REPORTABLE_LIST = [];
+// Yedek: GİB rehberi, Yayın 485, 2023, Ek 2 (120 ülke). Doğrulanmadı; güncel listeyle karşılaştırılmalı. TR kendi listesinde yer alır.
+// "Katılımcı ülke" listesi ise OECD taahhüdüdür ve burada kullanılmaz.
 const TR_CRS_PARTNERS = [
   "DE","AD","AI","AG","AR","AL","AW","AU","AT","AZ","BS","BH","BB","BE","BZ","BM","AE","GB","BR","BN","BG","KY","GI","CK","CW","CZ","CN",
   "DK","DM","EC","ID","EE","FO","MA","FI","FR","GH","CY","GD","GL","GG","ZA","GE","HR","IN","NL","HK","VG","IE","ES","IL","SE","CH",
@@ -376,9 +379,11 @@ function validateCrs(form, options = {}) {
   // CRS raporlanabilir ülke kontrolü: OECD taahhüdü (katılım) tek başına yeterli değil; kurumun yerel listesinde ve
   // değişim anlaşması olan ülke olmalı. Yabancı ikametgâh varsa manuel kontrol gerekir.
   const foreignRes = (form.taxResidences || []).filter((c) => isIso2(c) && c !== RFI_COUNTRY);
-  const notPartner = foreignRes.filter((c) => !TR_CRS_PARTNERS.includes(c));
+  const reportableList = TR_REPORTABLE_LIST.length > 0 ? TR_REPORTABLE_LIST : TR_CRS_PARTNERS;
+  const listSource = TR_REPORTABLE_LIST.length > 0 ? "GİB bildirim yapılan ülke listesinde" : "GİB 2023 listesinde (doğrulanmadı)";
+  const notPartner = foreignRes.filter((c) => !reportableList.includes(c));
   if (notPartner.length > 0) {
-    add(manual, "R9", `Raporlanabilir ülke kontrolü: ${notPartner.join(", ")} Türkiye'nin CRS ortak listesinde (GİB 2023) yok. Değişim anlaşması ve güncel liste elle doğrulanmalı.`);
+    add(manual, "R9", `Raporlanabilir ülke kontrolü: ${notPartner.join(", ")} ${listSource} yok. Değişim anlaşması ve güncel liste elle doğrulanmalı.`);
   }
   // R10: ilişki yöneticisi bilgisi ve yüksek değerli hesap incelemesi
   if (form.rmKnowsReportable === true) add(errors, "R10", "İlişki yöneticisi müşterinin raporlanabilir kişi olduğunu biliyor; beyan güvenilir kabul edilemez (reason to know).");
@@ -792,7 +797,7 @@ const EN_PATTERNS = [
   [/^(.+?) için TIN formatı bu araçta tanımlı değil, elle kontrol edilmeli\.$/s, (m) => "No TIN format rule in this tool for " + m[1] + "; check manually."],
   [/^CBI\/RBI yüksek riskli ülke \((.*?)\): .*$/s, (m) => "High-risk CBI/RBI country (" + m[1] + "): additional due diligence required. Ask: did the customer obtain residence rights through CBI/RBI? Do they hold residence rights elsewhere? Did they spend more than 90 days elsewhere last year? In which countries did they file personal income tax returns last year?"],
   [/^CRS göstergesi \(c\): TR dışında telefon \((.*?)\) var.*$/s, (m) => "CRS indicium (c): non-Turkish phone (" + m[1] + ") present, no Turkish phone, and this country is not among the declared residences. Close with documents or a new declaration."],
-  [/^Raporlanabilir ülke kontrolü: (.*?) Türkiye'nin CRS ortak listesinde \(GİB 2023\) yok\..*$/s, (m) => "Reportable jurisdiction check: " + m[1] + " is not on Turkey's CRS partner list (GİB 2023). Verify the exchange agreement and the current list manually."],
+  [/^Raporlanabilir ülke kontrolü: (.*?) (GİB bildirim yapılan ülke listesinde|GİB 2023 listesinde \(doğrulanmadı\)) yok\..*$/s, (m) => "Reportable jurisdiction check: " + m[1] + " is not on the " + (m[2].includes("doğrulanmadı") ? "GİB 2023 list (unverified)" : "GİB reportable jurisdiction list") + ". Verify the exchange agreement and the current list manually."],
   [/^CRS göstergesi \(b\): güncel adres TR dışında \((.*?)\)\..*$/s, (m) => "CRS indicium (b): current address outside Turkey (" + m[1] + "). Close with documents or a declaration explaining the residence."]
 ];
 function enIndicia(text) {

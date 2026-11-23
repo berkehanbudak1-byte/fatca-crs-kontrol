@@ -9,7 +9,7 @@
           --err:#c0392b; --warn:#b7791f; --man:#2b6cb0; --ok:#2f855a; }
   * { box-sizing: border-box; }
   body { margin:0; font-family: system-ui, "Segoe UI", Arial, sans-serif; background:var(--bg); color:var(--ink); }
-  header { background:#1d2433; color:#fff; padding:16px 24px; }
+  header { position:relative; background:#1d2433; color:#fff; padding:16px 24px; }
   header h1 { margin:0; font-size:20px; }
   header p { margin:4px 0 0; font-size:13px; opacity:.8; }
   main { max-width:1000px; margin:20px auto; padding:0 16px; display:grid; gap:16px; }
@@ -44,7 +44,7 @@
 <body>
 <header>
   <h1>FATCA / CRS Müşteri Kontrolü</h1>
-  <button type="button" id="lang" style="float:right;margin-top:-44px">English</button>
+  <button type="button" id="lang" style="position:absolute;right:16px;top:16px">English</button>
   <p>Ön kontroldür, hukuki karar değildir. Veriler yalnızca bu sayfada işlenir, hiçbir yere gönderilmez.</p>
 </header>
 
@@ -207,7 +207,7 @@ function validateFatca(form) {
 }
 
 // ===== CRS (OECD) — C1–C7 =====
-// Ülke TIN kontrolü: yukarıdaki tin-rules bloğundaki 142 ülke tablosunu kullanır.
+// Ülke TIN kontrolü: tin-rules bloğundaki COUNTRY_TABLE kullanılır (bu sürümde boş).
 // Tabloda olmayan ülke (ör. TR) için TIN elle kontrol edilir.
 function tinCountryCheck(code, tin) {
   if (!COUNTRY_TABLE.some((c) => c.code === code)) return null;
@@ -586,8 +586,15 @@ function render(out) {
   box.appendChild(det);
 }
 
+// Yerel tarih (YYYY-MM-DD). toISOString() UTC verir; Türkiye'de gece 00:00–03:00 arası bir gün geriden gelir.
+function localToday() {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
 function run() {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localToday();
   const v = readValues();
   if (!v.declarationDate) v.declarationDate = today;
   render(ENGINE.check(v, today));
@@ -595,7 +602,7 @@ function run() {
 
 const SAMPLE = {
   fullName: "Ayşe Örnek", accountHolderType: "individual", dateOfBirth: "1990-05-14",
-  declarationDate: new Date().toISOString().slice(0, 10), signed: true,
+  declarationDate: localToday(), signed: true,
   residenceCountry: "TR", taxResidences: "TR", tin: "12345678901", noTinReason: "", noTinExplanation: "",
   countryIssuesTin: true, addressCountry: "TR", kycCountry: "TR",
   isPoBox: false, careOf: false, soleAddress: false,

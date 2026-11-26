@@ -1,0 +1,29 @@
+﻿musteri_no;ad_soyad;musteri_tipi;vatandaslik;dogum_ulkesi;ikamet_adresi_ulke;posta_adresi_ulke;tek_adres_care_of_hold_mail;telefon_1;telefon_2;telefon_3;mukimlik_ulke_1;tin_1;tin_yok_nedeni_1;mukimlik_ulke_2;tin_2;tin_yok_nedeni_2;mukimlik_ulke_3;tin_3;tin_yok_nedeni_3;tin_yok_aciklama;abd_hesabina_duzenli_talimat;vekil_imza_yetkilisi_adres_ulke;abd_degil_ozbeyan;abd_olmama_belge;ozbeyan_tarihi
+ORNEK-001;ÖRNEK VERİ - Temiz kayıt (kural tetiklenmez);G;TR;TR;TR;TR;H;+90 500 000 00 01;;;TR;10000001136;;;;;;;;;H;;;;15.03.2024
+ORNEK-002;ÖRNEK VERİ - F01 ABD vatandaşı, belge yok;G;"TR;US";TR;TR;TR;H;+90 500 000 00 01;;;TR;10000002294;;;;;;;;;H;;;;15.03.2024
+ORNEK-003;ÖRNEK VERİ - F01 ABD vatandaşlığı, CLN+öz beyan var;G;"TR;US";TR;TR;TR;H;+90 500 000 00 01;;;TR;10000003352;;;;;;;;;H;;E;E;15.03.2024
+ORNEK-004;ÖRNEK VERİ - F02 ABD doğumlu;G;TR;US;TR;TR;H;+90 500 000 00 01;;;TR;10000004410;;;;;;;;;H;;;;15.03.2024
+ORNEK-005;ÖRNEK VERİ - F03+F09+F10 ABD ikamet, ABD mukim, SSN;G;US;US;US;US;H;+1 212 555 0100;;;US;452-88-1001;;;;;;;;;H;;;;15.03.2024
+ORNEK-006;ÖRNEK VERİ - F04 ABD posta adresi;G;TR;TR;TR;US;H;+90 500 000 00 01;;;TR;10000005578;;;;;;;;;H;;;;15.03.2024
+ORNEK-007;ÖRNEK VERİ - F05 yalnız +1 telefon;G;TR;TR;TR;TR;H;+1 415 555 0101;;;TR;10000006636;;;;;;;;;H;;;;15.03.2024
+ORNEK-008;ÖRNEK VERİ - F05 +1 ve TR telefon;G;TR;TR;TR;TR;H;+1 415 555 0102;0500 000 00 02;;TR;10000007794;;;;;;;;;H;;;;15.03.2024
+ORNEK-009;ÖRNEK VERİ - F06 ABD hesabına düzenli talimat;G;TR;TR;TR;TR;H;+90 500 000 00 01;;;TR;10000008852;;;;;;;;;E;;;;15.03.2024
+ORNEK-010;ÖRNEK VERİ - F07 ABD adresli vekil;G;TR;TR;TR;TR;H;+90 500 000 00 01;;;TR;10000001136;;;;;;;;;H;US;;;15.03.2024
+ORNEK-011;ÖRNEK VERİ - F08 tek adres hold mail;G;TR;TR;TR;;E;+90 500 000 00 01;;;TR;10000001136;;;;;;;;;H;;;;15.03.2024
+ORNEK-012;ÖRNEK VERİ - F10 TR mukim ama ABD SSN biçimli TIN;G;TR;TR;TR;TR;H;+90 500 000 00 01;;;TR;219-09-9999;;;;;;;;;H;;;;15.03.2024
+ORNEK-013;ÖRNEK VERİ - C03 DE mukim, adres TR;G;TR;TR;TR;TR;H;+90 500 000 00 01;;;DE;65929970489;;;;;;;;;H;;;;15.03.2024
+ORNEK-014;ÖRNEK VERİ - C13 NL TIN checksum hatalı;G;NL;TR;NL;NL;H;+31 6 12345678;;;NL;111222334;;;;;;;;;H;;;;15.03.2024
+ORNEK-015;ÖRNEK VERİ - C10 GB, neden A;G;GB;TR;GB;GB;H;+44 7700 900123;;;GB;;A;;;;;;;;H;;;;15.03.2024
+ORNEK-016;ÖRNEK VERİ - C08 FR, TIN ve neden yok;G;FR;TR;FR;FR;H;+33 6 12 34 56 78;;;FR;;;;;;;;;;H;;;;15.03.2024
+ORNEK-017;ÖRNEK VERİ - C11 AZ, neden B açıklamasız;G;AZ;TR;AZ;AZ;H;+994 50 123 45 67;;;AZ;;B;;;;;;;;H;;;;15.03.2024
+ORNEK-018;ÖRNEK VERİ - C12 RU, neden C;G;RU;TR;RU;RU;H;+7 900 123 45 67;;;RU;;C;;;;;;;;H;;;;15.03.2024
+ORNEK-019;ÖRNEK VERİ - C09+C02 UA neden Z, uyruk kodu hatalı;G;XX;TR;UA;UA;H;+380 50 123 4567;;;UA;;Z;;;;;;;;H;;;;15.03.2024
+ORNEK-020;ÖRNEK VERİ - C15+C16 TR+DE aynı TIN;G;TR;TR;TR;TR;H;+90 500 000 00 01;;;TR;10000001136;;DE;10000001136;;;;;;H;;;;15.03.2024
+ORNEK-021;ÖRNEK VERİ - C14 yer tutucu TIN;G;TR;TR;TR;TR;H;+90 500 000 00 01;;;TR;123456789;;;;;;;;;H;;;;15.03.2024
+ORNEK-022;ÖRNEK VERİ - C17+C18 AE (CBI/RBI) mukimlik, adres TR;G;TR;TR;TR;TR;H;+90 500 000 00 01;;;AE;;B;;;;;;;AE kimliği var, TIN kartı yok (örnek açıklama);H;;;;15.03.2024
+ORNEK-023;ÖRNEK VERİ - C01 mukimlik beyanı yok;G;TR;TR;TR;TR;H;+90 500 000 00 01;;;;;;;;;;;;;H;;;;15.03.2024
+ORNEK-024;ÖRNEK VERİ - C20+C19 ülkesiz TIN, ileri tarihli öz beyan;G;TR;TR;TR;TR;H;+90 500 000 00 01;;;TR;10000001136;;;3184710691;;;;;;H;;;;01.01.2030
+ORNEK-025;ÖRNEK VERİ - Tüzel müşteri (kapsam dışı);T;TR;TR;TR;TR;H;+90 500 000 00 01;;;TR;9990000013;;;;;;;;;H;;;;15.03.2024
+ORNEK-026;ÖRNEK VERİ - Yabancı uyruklu TR mukimi, VKN geçerli, uyruk farkı (C07);G;DE;TR;TR;TR;H;+90 500 000 00 03;;;TR;9990000021;;;;;;;;;H;;;;15.03.2024
+ORNEK-027;ÖRNEK VERİ - C17 düşük: PA mukimlik;G;PA;TR;PA;PA;H;+507 6000 0000;;;PA;;B;;;;;;;Örnek açıklama;H;;;;15.03.2024
+ORNEK-028;ÖRNEK VERİ - C05 ikamet adresi ülkesi boş;G;TR;TR;;TR;H;+90 500 000 00 01;;;TR;10000001136;;;;;;;;;H;;;;15.03.2024

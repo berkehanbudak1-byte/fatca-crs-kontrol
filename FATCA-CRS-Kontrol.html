@@ -11,1744 +11,544 @@
   body { margin:0; font-family: system-ui, "Segoe UI", Arial, sans-serif; background:var(--bg); color:var(--ink); }
   header { background:#1d2433; color:#fff; padding:16px 24px; }
   header h1 { margin:0; font-size:20px; }
-  header p { margin:4px 0 0; font-size:13px; opacity:.8; }
-  main { max-width:1000px; margin:20px auto; padding:0 16px; display:grid; gap:16px; }
+  header p { margin:4px 0 0; font-size:13px; opacity:.85; }
+  main { max-width:1000px; margin:20px auto; padding:0 16px 28px; display:grid; gap:16px; }
   .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; }
   h2 { font-size:17px; margin:0 0 12px; }
-  h3 { font-size:14px; margin:14px 0 6px; }
-  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap:12px; }
+  h3 { font-size:15px; margin:16px 0 8px; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; }
   label.f { display:flex; flex-direction:column; gap:4px; font-size:13px; font-weight:600; }
-  label.c { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; }
-  input[type=text], input[type=date], select {
+  label.c { display:flex; align-items:flex-start; gap:8px; font-size:13px; font-weight:500; margin:6px 0; }
+  input[type=text], select {
     font-size:14px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; font-weight:400; }
   .hint { font-size:11px; color:var(--muted); font-weight:400; }
-  .row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:14px; }
+  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:12px; }
   button { font-size:14px; padding:9px 16px; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer; }
   button.primary { background:#2b6cb0; color:#fff; border-color:#2b6cb0; font-weight:600; }
-  button:hover { filter:brightness(.97); }
   .verdict { border-radius:10px; padding:18px; color:#fff; text-align:center; }
-  .verdict .big { font-size:26px; font-weight:800; letter-spacing:.5px; }
-  .verdict .sub { font-size:13px; opacity:.9; margin-top:4px; }
+  .verdict .big { font-size:28px; font-weight:800; }
+  .verdict .sub { font-size:14px; opacity:.95; margin-top:6px; }
   .v-ok { background:var(--ok); } .v-man { background:var(--warn); } .v-bad { background:var(--err); }
-  ul { margin:4px 0 0; padding-left:20px; font-size:14px; line-height:1.6; }
-  li.err { color:var(--err); } li.warn { color:var(--warn); } li.man { color:var(--man); } li.doc { color:var(--ink); }
-  .rule { font-family:Consolas, monospace; font-weight:700; margin-right:6px; }
-  .empty { color:var(--muted); font-size:14px; }
-  .badge { display:inline-block; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:700; color:#fff; margin-left:6px; vertical-align:middle; }
-  .badge.ok { background:var(--ok); } .badge.bad { background:var(--err); }
-  .note { font-size:12px; color:var(--muted); line-height:1.5; margin-top:10px; }
-  details { font-size:14px; margin-top:12px; }
-  summary { cursor:pointer; font-weight:600; }
-  .banner { border:1px solid #f0d9a8; background:#fff8eb; color:#7a4e00; border-radius:10px; padding:12px 14px; font-size:13px; line-height:1.55; }
-  .banner strong { color:#5c3b00; }
-  .banner a { color:#7a4e00; }
-  .banner.ok-list { border-color:#b7e0c5; background:#f0faf3; color:#1f5c38; }
-  .banner.ok-list a { color:#1f5c38; }
-  .banner .meta { margin-top:6px; font-size:12px; opacity:.9; }
-  .empty-box { text-align:center; padding:28px 16px; border:1px dashed var(--line); border-radius:10px; background:#fafbfc; }
-  .empty-box .title { font-size:15px; font-weight:700; margin:0 0 6px; color:var(--ink); }
-  .empty-box .desc { margin:0 0 12px; color:var(--muted); font-size:13px; line-height:1.5; }
-  .empty-box ul { display:inline-block; text-align:left; color:var(--muted); font-size:13px; margin:0; }
+  ul { margin:4px 0 0; padding-left:18px; }
+  li { margin:8px 0; line-height:1.45; }
+  li.err { color:var(--err); } li.warn { color:var(--warn); } li.man { color:var(--man); }
+  .rule { font-family: Consolas, monospace; font-weight:700; margin-right:6px; }
+  .sev { font-size:11px; font-weight:700; border-radius:999px; padding:1px 7px; margin-right:6px; }
+  .sev.hata { background:#fde8e6; color:var(--err); }
+  .sev.manuel { background:#e8f1fb; color:var(--man); }
+  .sev.uyari { background:#f8f1de; color:var(--warn); }
+  .src { display:block; font-size:12px; color:var(--muted); font-weight:400; margin-top:2px; }
+  .note { font-size:12px; color:var(--muted); line-height:1.5; }
+  .banner { border:1px solid #f0d9a8; background:#fff8eb; color:#7a4e00; border-radius:10px; padding:12px 14px; font-size:13px; line-height:1.5; }
+  .empty-box { text-align:center; padding:24px 12px; color:var(--muted); }
   .field-err { border-color:var(--err) !important; background:#fff5f5; }
-  .run-error { border:1px solid #f0b4ad; background:#fff1f0; color:var(--err); border-radius:10px; padding:12px 14px; font-size:13px; margin-bottom:12px; }
-  #results:target, #results.has-result { scroll-margin-top:16px; }
-  footer { max-width:1000px; margin:24px auto; padding:0 16px 32px; font-size:12px; color:#555; line-height:1.5; }
-  footer p { margin:0 0 8px; }
-  header .row { margin-top:10px; gap:8px; }
-  .privacy { display:inline-block; font-size:11px; padding:3px 8px; border-radius:6px; background:rgba(255,255,255,.12); }
-  @media (max-width:600px) {
-    header { padding:14px 16px; }
-    header h1 { font-size:18px; }
-    .verdict .big { font-size:22px; }
-  }
-  textarea.batch-input { width:100%; font-family:Consolas, monospace; font-size:12px; padding:10px; border:1px solid var(--line); border-radius:8px; resize:vertical; margin-top:8px; background:#fff; color:var(--ink); }
-  .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(135px, 1fr)); gap:10px; margin:12px 0; }
-  .kpi-box { border:1px solid var(--line); border-radius:8px; padding:10px; background:#fafbfc; text-align:center; }
-  .kpi-box .num { font-size:20px; font-weight:800; color:var(--ink); }
-  .kpi-box .lbl { font-size:11px; color:var(--muted); margin-top:2px; }
-  .kpi-box.ok .num { color:var(--ok); }
-  .kpi-box.bad .num { color:var(--err); }
-  .kpi-box.man .num { color:var(--warn); }
-  .batch-table-wrap { overflow-x:auto; margin-top:10px; }
-  table.batch-table { width:100%; border-collapse:collapse; font-size:12px; }
-  table.batch-table th, table.batch-table td { border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
-  table.batch-table th { background:#f0f3f8; font-weight:700; }
+  textarea { width:100%; font-family: Consolas, monospace; font-size:12px; padding:10px; border:1px solid var(--line); border-radius:8px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
+  th { background:#f7f8fb; }
+  .slot { border-top:1px dashed var(--line); margin-top:10px; padding-top:10px; }
+  footer { max-width:1000px; margin:0 auto 32px; padding:0 16px; font-size:12px; color:#555; line-height:1.5; }
+  header .top { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+  @media (max-width:600px) { header { padding:14px; } .verdict .big { font-size:22px; } }
 </style>
 </head>
 <body>
 <header>
-  <h1>FATCA / CRS Müşteri Kontrolü</h1>
-  <p>Ön kontroldür, hukuki karar değildir. Veriler yalnızca bu sayfada işlenir, hiçbir yere gönderilmez.</p>
-  <div class="row">
+  <div class="top">
+    <div>
+      <h1 data-i18n="title">FATCA / CRS Müşteri Kontrolü</h1>
+      <p data-i18n="lead">Ön kontroldür, hukuki karar değildir. Veriler bu sayfadan dışarı gitmez.</p>
+    </div>
     <button type="button" id="lang">English</button>
-    <span class="privacy">Çevrimdışı / tarayıcı içi</span>
   </div>
 </header>
-
 <main>
-  <aside class="banner" id="listBanner" role="status">
-    <strong>Ülke listesi yenilenmeli:</strong>
-    Yerleşik liste GİB Yayın 485 (2023) Ek 2 yedeğidir; güncel olmayabilir.
-    Raporlama için kurumunuzun güncel GİB bildirim listesini veya
-    <a href="https://www.oecd.org/tax/automatic-exchange/international-framework-for-the-crs/exchange-relationships/" target="_blank" rel="noopener">OECD Automatic Exchange Portal</a>
-    üzerinden Türkiye değişim ilişkilerini kontrol edin.
-    Listeyi güncellemek için <code>data/crs-partners.json</code> dosyasını düzenleyin.
-    <div class="meta" id="listMeta">Kaynak: GİB 2023 Ek 2 (yerleşik yedek) · durum: yenileme gerekli</div>
-  </aside>
+  <aside class="banner" id="listBanner" data-i18n="banner">Ülke listesi 2023 GİB yedeğidir. Raporlamadan önce kurumunuzun güncel listesine bakın.</aside>
 
   <section class="card">
-    <h2>1. Müşteri bilgileri</h2>
+    <h2 data-i18n="s1">1. Müşteri</h2>
     <div class="grid">
-      <label class="f">Ad soyad
-        <input type="text" id="fullName" placeholder="Ayşe Örnek"></label>
-      <label class="f">Hesap türü
+      <label class="f"><span data-i18n="name">Ad soyad</span>
+        <input type="text" id="fullName" data-ph="namePh" placeholder="Ayşe Örnek"></label>
+      <label class="f"><span data-i18n="type">Hesap türü</span>
         <select id="accountHolderType">
-          <option value="individual">Gerçek kişi</option>
-          <option value="entity">Tüzel kişi</option>
+          <option value="individual" data-i18n="ind">Gerçek kişi</option>
+          <option value="entity" data-i18n="ent">Tüzel kişi</option>
         </select></label>
-      <label class="f">Doğum tarihi <span class="hint">gerçek kişi için (YYYY-MM-DD)</span>
+      <label class="f"><span data-i18n="dob">Doğum tarihi</span>
         <input type="text" id="dateOfBirth" placeholder="1990-05-14"></label>
-      <label class="f">Beyan tarihi <span class="hint">(YYYY-MM-DD)</span>
-        <input type="text" id="declarationDate"></label>
-    </div>
-    <label class="c" style="margin-top:12px"><input type="checkbox" id="signed"> Beyan imzalı ve onaylı</label>
-  </section>
-
-  <section class="card">
-    <h2>2. Vergi ikametgâhı ve TIN</h2>
-    <div class="grid">
-      <label class="f">Vergi ikametgâh ülkesi <span class="hint">ISO kodu, örn. TR, US, DE</span>
-        <input type="text" id="residenceCountry" placeholder="TR"></label>
-      <label class="f">Tüm vergi ikametgâh ülkeleri <span class="hint">virgülle, örn. TR, DE</span>
-        <input type="text" id="taxResidences" placeholder="TR"></label>
-      <label class="f">TIN (vergi numarası)
-        <input type="text" id="tin" placeholder="boş bırakılabilir">
-        <span class="hint" id="tinFormatHint">Ülke kodu girildiğinde resmi TIN formatı ve hane beklentisi burada gösterilir.</span></label>
-      <label class="f">TIN yok ise neden kodu
-        <select id="noTinReason">
-          <option value="">— seçiniz —</option>
-          <option value="A">A: Ülke TIN vermiyor</option>
-          <option value="B">B: Müşteri TIN alamadı</option>
-          <option value="C">C: TIN gerekmiyor</option>
-        </select></label>
-      <label class="f">Neden kodu B ise açıklama
-        <input type="text" id="noTinExplanation"></label>
-    </div>
-    <label class="c" style="margin-top:12px"><input type="checkbox" id="countryIssuesTin" checked> Bu ülke TIN veriyor</label>
-  </section>
-
-  <section class="card">
-    <h2>3. Adres ve kurum bilgisi</h2>
-    <div class="grid">
-      <label class="f">Adres ülkesi
-        <input type="text" id="addressCountry" placeholder="TR"></label>
-      <label class="f">Hesap açılış (KYC) ülkesi
-        <input type="text" id="kycCountry" placeholder="TR"></label>
-    </div>
-    <div class="row">
-      <label class="c"><input type="checkbox" id="isPoBox"> Posta kutusu</label>
-      <label class="c"><input type="checkbox" id="careOf"> Care-of adres</label>
-      <label class="c"><input type="checkbox" id="soleAddress"> Bu tek adres</label>
-      <label class="c"><input type="checkbox" id="highValue"> Yüksek değerli hesap</label>
-      <label class="c"><input type="checkbox" id="rmKnowsReportable"> İlişki yöneticisi müşterinin raporlanabilir kişi olduğunu biliyor</label>
-    </div>
-  </section>
-
-  <section class="card">
-    <h2>4. ABD bağlantıları (FATCA)</h2>
-    <div class="grid">
-      <label class="f">Vatandaşlık <span class="hint">ISO kodu</span>
-        <input type="text" id="citizenship" placeholder="TR"></label>
-      <label class="f">Doğum ülkesi <span class="hint">ISO kodu</span>
+      <label class="f"><span data-i18n="decl">Beyan tarihi</span>
+        <input type="text" id="declarationDate" placeholder="2024-03-15"></label>
+      <label class="f"><span data-i18n="cit">Vatandaşlık</span>
+        <input type="text" id="citizenship" data-ph="isoPh" placeholder="TR veya TR; DE"></label>
+      <label class="f"><span data-i18n="birth">Doğum ülkesi</span>
         <input type="text" id="birthCountry" placeholder="TR"></label>
-      <label class="f">Telefon numaraları <span class="hint">virgülle</span>
-        <input type="text" id="phones" placeholder="+90 532 000 00 00"></label>
-      <label class="f">ABD doğum yeri ise cure belgesi açıklaması
-        <input type="text" id="cureDocs"></label>
     </div>
-    <div class="row">
-      <label class="c"><input type="checkbox" id="usPersonDeclared"> Müşteri ABD kişisi olarak beyan etti</label>
-      <label class="c"><input type="checkbox" id="standingUs"> ABD hesabına sabit ödeme talimatı var</label>
-      <label class="c"><input type="checkbox" id="usPoa"> ABD adresli vekil ya da imza yetkilisi var</label>
-      <label class="c"><input type="checkbox" id="usGreenCard"> ABD yeşil kart (LPR) sahibi</label>
-      <label class="c"><input type="checkbox" id="usDays183"> Cari yılda ABD'de 183+ gün</label>
+    <label class="c"><input type="checkbox" id="signed"> <span data-i18n="signed">Beyan imzalı veya onaylı</span></label>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="s2">2. Vergi mukimliği ve TIN</h2>
+    <p class="note" data-i18n="s2note">En fazla üç ülke. TIN yoksa A, B veya C seçin. B için alttaki açıklama zorunludur.</p>
+    <div class="slot">
+      <div class="grid">
+        <label class="f"><span data-i18n="c1">Ülke 1</span><input type="text" id="res1" placeholder="TR"></label>
+        <label class="f"><span data-i18n="t1">TIN 1</span><input type="text" id="tin1" placeholder="10000001136">
+          <span class="hint" id="tinHint" data-i18n="tinHint">Ülke yazılınca biçim burada görünür.</span></label>
+        <label class="f"><span data-i18n="r1">Neden 1</span><select id="reason1"><option value="">—</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></label>
+      </div>
     </div>
+    <div class="slot">
+      <div class="grid">
+        <label class="f"><span data-i18n="c2">Ülke 2</span><input type="text" id="res2" placeholder=""></label>
+        <label class="f"><span data-i18n="t2">TIN 2</span><input type="text" id="tin2"></label>
+        <label class="f"><span data-i18n="r2">Neden 2</span><select id="reason2"><option value="">—</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></label>
+      </div>
+    </div>
+    <div class="slot">
+      <div class="grid">
+        <label class="f"><span data-i18n="c3">Ülke 3</span><input type="text" id="res3"></label>
+        <label class="f"><span data-i18n="t3">TIN 3</span><input type="text" id="tin3"></label>
+        <label class="f"><span data-i18n="r3">Neden 3</span><select id="reason3"><option value="">—</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></label>
+      </div>
+    </div>
+    <label class="f" style="margin-top:10px"><span data-i18n="whyB">Neden B ise açıklama</span>
+      <input type="text" id="noTinExplanation"></label>
+    <p class="note" data-i18n="abc">A: ülke TIN vermiyor. B: müşteri TIN alamadı. C: ülkenin hukuku TIN istemiyor.</p>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="s3">3. Adres, KYC ve telefon</h2>
+    <div class="grid">
+      <label class="f"><span data-i18n="addr">İkamet adresi ülkesi</span><input type="text" id="addressCountry" placeholder="TR"></label>
+      <label class="f"><span data-i18n="mail">Posta adresi ülkesi</span><input type="text" id="mailCountry" placeholder="TR"></label>
+      <label class="f"><span data-i18n="kyc">KYC belge ülkesi</span><input type="text" id="kycCountry" placeholder="TR"></label>
+      <label class="f"><span data-i18n="p1">Telefon 1</span><input type="text" id="phone1" placeholder="+90 500 000 00 01"></label>
+      <label class="f"><span data-i18n="p2">Telefon 2</span><input type="text" id="phone2"></label>
+      <label class="f"><span data-i18n="p3">Telefon 3</span><input type="text" id="phone3"></label>
+    </div>
+    <label class="c"><input type="checkbox" id="holdMailSole"> <span data-i18n="hold">Kayıtlı tek adres care-of veya hold mail</span></label>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="s4">4. ABD bağlantısı ve dosya</h2>
+    <div class="grid">
+      <label class="f"><span data-i18n="poa">Vekil adres ülkesi</span><input type="text" id="poaCountry" placeholder="US"></label>
+    </div>
+    <label class="c"><input type="checkbox" id="standingUs"> <span data-i18n="stand">ABD hesabına düzenli ödeme talimatı var</span></label>
+    <label class="c"><input type="checkbox" id="nonUsCert"> <span data-i18n="w8">Dosyada ABD kişisi olmadığına dair öz beyan (W-8BEN) var</span></label>
+    <label class="c"><input type="checkbox" id="nonUsEvidence"> <span data-i18n="pass">Dosyada ABD dışı statü belgesi (pasaport vb.) var</span></label>
+    <label class="c"><input type="checkbox" id="usPersonDeclared"> <span data-i18n="usp">Müşteri kendini ABD kişisi olarak beyan etti</span></label>
+    <label class="c"><input type="checkbox" id="usGreenCard"> <span data-i18n="gc">Yeşil kart var</span></label>
+    <label class="c"><input type="checkbox" id="usDays183"> <span data-i18n="d183">Bu yıl ABD'de 183 gün veya daha fazla</span></label>
+    <label class="c"><input type="checkbox" id="highValue"> <span data-i18n="hv">Yüksek değerli hesap</span></label>
+    <label class="c"><input type="checkbox" id="rmKnowsReportable"> <span data-i18n="rm">İlişki yöneticisi, müşterinin raporlanabilir kişi olduğunu biliyor</span></label>
   </section>
 
   <section class="card">
     <div class="row" style="margin-top:0">
-      <button class="primary" id="run">Kontrol et</button>
-      <button id="sample">Örnek doldur</button>
-      <button id="presetUs">ABD Endiseli Bireysel</button>
-      <button id="presetMulti">Coklu Vergi Mukimi</button>
-      <button id="presetEntity">Tuzel Pasif NFE</button>
-      <button id="exportJson">JSON Denetim Raporu</button>
-      <button id="exportCsv">CSV Denetim Raporu</button>
-      <button id="clear">Temizle</button>
+      <button type="button" class="primary" id="run" data-i18n="run">Kontrol et</button>
+      <button type="button" id="sample" data-i18n="sample">Örnek doldur</button>
+      <button type="button" id="clear" data-i18n="clear">Temizle</button>
     </div>
-  </section>
-
-  <section class="card">
-    <details id="batchPanel">
-      <summary>Toplu CSV Tarama Paneli (Batch Screening &amp; XML Hazırlık)</summary>
-      <p class="note">Birden fazla müşteri satırını virgül (,) veya noktalı virgül (;) ayracıyla yapıştırın. Desteklenen sütunlar: <code>fullName, accountHolderType, dateOfBirth, declarationDate, signed, residenceCountry, taxResidences, tin, addressCountry, kycCountry, reportingFi, accountNumber, docTypeIndic</code></p>
-      <textarea id="batchCsvInput" class="batch-input" rows="6" placeholder="fullName,accountHolderType,dateOfBirth,declarationDate,signed,residenceCountry,taxResidences,tin,addressCountry,kycCountry,reportingFi,accountNumber,docTypeIndic"></textarea>
-      <div class="row">
-        <button class="primary" id="runBatch">Toplu Tara</button>
-        <button id="sampleBatch">Örnek CSV Yükle</button>
-        <button id="clearBatch">Listeyi Temizle</button>
-      </div>
-      <div id="batchResults"></div>
-    </details>
   </section>
 
   <section class="card" id="results">
-    <div class="empty-box" id="emptyState">
-      <p class="title">Henüz sonuç yok</p>
-      <p class="desc">Formu doldurup "Kontrol et" düğmesine basın. Sonuç ve istenecek belgeler burada görünecek. Veriler tarayıcı dışına çıkmaz.</p>
-      <ul>
-        <li>Ad soyad, hesap türü, beyan tarihi ve imza</li>
-        <li>Vergi ikametgâhı / TIN (veya neden kodu)</li>
-        <li>Adres ve KYC ülkesi</li>
-        <li>Varsa ABD bağlantıları (FATCA)</li>
-      </ul>
+    <div class="empty-box" data-i18n="empty">Henüz sonuç yok. Kontrol et düğmesine basın.</div>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="batch">Toplu kontrol</h2>
+    <p class="note" data-i18n="batchNote">Yalnızca örnek veri yapıştırın. Gerçek müşteri dosyasını bu kutuya koymayın. Sonuç CSV'si noktalı virgül kullanır.</p>
+    <textarea id="batchCsv" rows="5" spellcheck="false"></textarea>
+    <div class="row">
+      <button type="button" class="primary" id="runBatch" data-i18n="runBatch">Toplu kontrol et</button>
+      <button type="button" id="loadSample" data-i18n="loadSample">Örnek CSV</button>
+      <button type="button" id="saveBatch" data-i18n="saveBatch">Sonuç CSV indir</button>
     </div>
+    <div id="batchOut"></div>
   </section>
 </main>
+<footer>
+  <p data-i18n="foot1"><strong>Sınır.</strong> Araç belgeyi görmez ve TIN'in kişiye ait olduğunu doğrulamaz. Tüzel müşteri için ayrı öz beyan gerekir.</p>
+  <p data-i18n="foot2"><strong>Kaynak.</strong> Ayrıntılı kural tablosu docs/kapsam.md dosyasındadır. Ülke listesi 2023 yedeğidir.</p>
+</footer>
 
-<script id="tin-rules">
-// Bu genel sürümde üçüncü taraf ülke TIN kuralları yer almaz. Tüm TIN'ler elle doğrulanır.
-// Kendi kurumunuzun doğruladığı kuralları eklemek için COUNTRY_TABLE ve vo() tanımlanabilir.
-const COUNTRY_TABLE = [];
-const $n = class { constructor(e = null) { this.value = e; } };
-function vo() { return false; }
-</script>
-
-<script id="engine">
-// ===== FATCA (IRS 26 CFR 1.1471-4) — F1–F9 =====
-const US_TIN_SSN = /^\d{3}-\d{2}-\d{4}$/;
-const US_TIN_ITIN = /^9\d{2}-(5\d|6[0-5]|7\d|8[0-8]|9[0-2]|9[4-9])-\d{4}$/;
-const US_TIN_EIN = /^\d{2}-\d{7}$/;
-const isUsPhone = (n) => typeof n === "string" && /^\+?1[\s-]?\(?\d{3}\)?/.test(n.trim());
-
-function indicia(form) {
-  const out = [];
-  const a = form.address || {};
-  if (form.citizenship === "US") out.push({ rule: "F1", msg: "ABD vatandaşlığı" });
-  if (form.residenceCountry === "US") out.push({ rule: "F1", msg: "ABD ikametgâhı" });
-  if (form.birthCountry === "US") out.push({ rule: "F2", msg: "ABD doğum yeri" });
-  if (a.country === "US") out.push({ rule: "F3", msg: "Mevcut ABD adresi" });
-  if (a.isPoBox && a.country === "US") out.push({ rule: "F3", msg: "ABD posta kutusu" });
-  if ((form.phones || []).some(isUsPhone)) out.push({ rule: "F4", msg: "ABD telefonu (+1)" });
-  if (Array.isArray(form.standingUsInstructions) && form.standingUsInstructions.length > 0) {
-    out.push({ rule: "F5", msg: "ABD hesabına sabit ödeme talimatı" });
-  }
-  if (Array.isArray(form.usPoaOrSigners) && form.usPoaOrSigners.some((p) => p && p.usAddress)) {
-    out.push({ rule: "F6", msg: "ABD adresli vekil ya da imza yetkilisi" });
-  }
-  if (a.careOf && a.soleAddress === true) out.push({ rule: "F7", msg: "Care-of adres tek adres olarak kullanılıyor" });
-  return out;
-}
-
-function validateFatca(form) {
-  const errors = [], warnings = [], manual = [];
-  const add = (list, rule, msg) => list.push({ rule, msg });
-  const ind = indicia(form);
-  const declared = form.usPersonDeclared === true;
-  // ABD kişi testi (IRS): yeşil kart (LPR) ya da cari yılda 183+ gün ABD kişisi olmayı gösterir
-  const usTest = form.usGreenCard === true || form.usDays183 === true;
-  if (usTest && !declared) add(errors, "F1", "ABD kişi testi pozitif (yeşil kart ya da 183 gün) ama ABD kişisi beyan edilmemiş.");
-  if (usTest && declared) add(manual, "F1", "ABD kişi testi pozitif: W-9 ve ABD TIN'inin alınması gerekir.");
-  if (ind.length > 0 && !declared) {
-    const list = ind.map((i) => `${i.rule} (${i.msg})`).join("; ");
-    if (form.residenceCountry === "US") add(errors, "F1", `ABD ikametgâhı var ama ABD kişisi beyan edilmemiş: ${list}`);
-    else add(warnings, "F1", `ABD göstergeleri var, ABD kişisi beyan edilmemiş: ${list}`);
-    add(manual, "F8", "ABD göstergesi cure ya da recalcitrant adımlarına karar gerektirebilir.");
-  }
-  if (ind.some((i) => i.rule === "F2") && !String(form.birthCountryCureDocs || "").trim()) {
-    add(manual, "F2", "ABD doğum yeri cure: non-US vatandaşlık belgesi ve Certificate of Loss of Nationality ya da açıklama gerekiyor.");
-  }
-  if (ind.some((i) => i.rule === "F4")) {
-    add(manual, "F4", "Telefon +1 ile başlıyor, ABD ya da Kanada olabilir. Yabancı numara varsa cure farklı.");
-  }
-  if (ind.some((i) => i.rule === "F7")) add(manual, "F7", "Care-of adres tek adres. Kural bu durumda geçerli, cure gerekir.");
-  if (ind.some((i) => ["F3", "F5", "F6"].includes(i.rule))) {
-    add(manual, "F9", "ABD adresi, sabit talimat ya da vekil bilgisi hesap kayıtlarıyla doğrulanmalı.");
-  }
-  add(manual, "F9", "Yeni hesap açılış ve idame bilgilerinin gözden geçirilmesi manuel yapılmalı.");
-  if (form.residenceCountry === "US" && typeof form.tin === "string" && form.tin.trim()) {
-    const t = form.tin.trim();
-    const isEntity = form.accountHolderType === "entity";
-    if (!US_TIN_SSN.test(t) && !US_TIN_ITIN.test(t) && !(isEntity && US_TIN_EIN.test(t))) {
-      add(errors, "F1", "ABD TIN'i SSN (XXX-XX-XXXX) ya da ITIN biçiminde olmalı.");
-    }
-  }
-  return { valid: errors.length === 0, errors, warnings, manual };
-}
-
-// ===== CRS (OECD) — C1–C7 =====
-// Ülke TIN kontrolü: tin-rules bloğundaki COUNTRY_TABLE kullanılır (bu sürümde boş).
-// Tabloda olmayan ülke (ör. TR) için TIN elle kontrol edilir.
-function tinCountryCheck(code, tin) {
-  if (!COUNTRY_TABLE.some((c) => c.code === code)) return null;
-  const info = new $n(), msg = new $n();
-  const ok = vo(tin, code, info, msg);
-  return { ok: ok === true, msg: msg.value || `${code} TIN'i format kuralına uymuyor.` };
-}
-const REASON_CODES = new Set(["A", "B", "C"]);
-// BNZ Reasonableness Test Guide: OECD'nin 13 yüksek riskli CBI/RBI ülkesi (ISO-2)
-// Kontrol listesi maddeleri: ekranda gösterilir ama karara ve belge listesine girmez
-const CHECKLIST_ONLY = ["F9", "R4", "R5"];
-// Kurumun (banka) ülkesi: CRS göstergeleri bu ülkeye göre değerlendirilir
-const RFI_COUNTRY = "TR";
-// R9 için asıl liste: GİB'in internet sitesinde yayımlanan "bildirim yapılan ülke" listesi (Mukimlik Kılavuzu Madde 76(1)).
-// Liste GİB'den alınıp buraya yazılana kadar boş; boşken aşağıdaki 2023 listesi kullanılır.
-// Öncelik: 1) data/crs-partners.json (statik sunucuda) 2) TR_REPORTABLE_LIST 3) TR_CRS_PARTNERS (2023 yedek)
-let PARTNER_META = {
-  asOf: "2023-08",
-  needsRefresh: true,
-  source: "GİB Yayın 485 (2023) Ek 2 — yerleşik yedek",
-  loadedFrom: "embedded"
-};
-let TR_REPORTABLE_LIST = [];
-// Yedek: GİB rehberi, Yayın 485, 2023, Ek 2 (120 ülke). Doğrulanmadı; güncel listeyle karşılaştırılmalı. TR kendi listesinde yer alır.
-// "Katılımcı ülke" listesi (OECD katılım taahhüdü) burada kullanılmaz; raporlanabilirlik yerel liste + aktif değişim ister.
-const TR_CRS_PARTNERS = [
-  "DE","AD","AI","AG","AR","AL","AW","AU","AT","AZ","BS","BH","BB","BE","BZ","BM","AE","GB","BR","BN","BG","KY","GI","CK","CW","CZ","CN",
-  "DK","DM","EC","ID","EE","FO","MA","FI","FR","GH","CY","GD","GL","GG","ZA","GE","HR","IN","NL","HK","VG","IE","ES","IL","SE","CH",
-  "IT","IS","JM","JP","JE","CA","ME","QA","KZ","KE","CO","KR","CR","KW","LV","LR","LI","LT","LB","LU","HU","MO","MV","MY","MT","IM",
-  "MH","MX","MD","MC","MS","MU","NR","NG","NU","NO","PK","PA","PE","PT","PL","RO","RW","RU","KN","LC","VC","WS","SM","SC","SG","SX",
-  "SK","SI","SA","CL","TH","TC","TR","UG","UA","OM","UY","VU","NC","NZ","GR"
-];
-// Ülke telefon kodları (ITU-T E.164). Bir ülkenin birden fazla alan kodu olabilir (ör. NANP "1").
-// Tabloda olmayan kod eşleşmez ve manuel kalır.
-const DIAL_CODES = {
-  AF:"93", AL:"355", DZ:"213", AD:"376", AO:"244", AI:"1264", AG:"1268", AR:"54", AM:"374", AW:"297", AU:"61", AT:"43", AZ:"994",
-  BS:"1242", BH:"973", BD:"880", BB:"1246", BY:"375", BE:"32", BZ:"501", BJ:"229", BT:"975", BO:"591", BA:"387", BW:"267", BR:"55",
-  BN:"673", BG:"359", BF:"226", BI:"257", CV:"238", KH:"855", CM:"237", CA:"1", KY:"1345", CF:"236", CK:"682", CL:"56", CN:"86",
-  CO:"57", CD:"243", CR:"506", CI:"225", HR:"385", CU:"53", CW:"599", CY:"357", CZ:"420", DK:"45", DM:"1767", DO:"1809", EC:"593",
-  EG:"20", SV:"503", EE:"372", FO:"298", FI:"358", FR:"33", GE:"995", DE:"49", GH:"233", GI:"350", GR:"30", GL:"299", GD:"1473",
-  GT:"502", GN:"224", HT:"509", HN:"504", HK:"852", HU:"36", IS:"354", IN:"91", ID:"62", IQ:"964", IE:"353", IM:"44", IL:"972",
-  IT:"39", JM:"1876", JP:"81", JE:"44", JO:"962", KZ:"7", KE:"254", KR:"82", KW:"965", KG:"996", LA:"856", LV:"371", LB:"961",
-  LS:"266", LR:"231", LY:"218", LI:"423", LT:"370", LU:"352", MO:"853", MK:"389", MG:"261", MW:"265", MY:"60", MV:"960", ML:"223",
-  MT:"356", MH:"692", MU:"230", MX:"52", MD:"373", MC:"377", MN:"976", ME:"382", MA:"212", MZ:"258", NA:"264", NR:"674", NP:"977",
-  NL:"31", NZ:"64", NG:"234", NO:"47", OM:"968", PK:"92", PW:"680", PA:"507", PY:"595", PE:"51", PH:"63", PL:"48", PT:"351",
-  QA:"974", RO:"40", RU:"7", RW:"250", LC:"1758", SM:"378", SA:"966", SN:"221", RS:"381", SC:"248", SG:"65", SX:"1721", SK:"421",
-  SI:"386", ZA:"27", ES:"34", LK:"94", SD:"249", SR:"597", SE:"46", CH:"41", SY:"963", TW:"886", TJ:"992", TZ:"255", TH:"66",
-  TT:"1868", TN:"216", TR:"90", TM:"993", TC:"1649", UA:"380", AE:"971", GB:"44", US:"1", UY:"598", UZ:"998", VU:"678", VE:"58",
-  VN:"84", YE:"967", ZM:"260", ZW:"263", XK:"383"
-};
-// Bir telefon numarasının olası ülkelerini bulur (en uzun eşleşen kod). Eşleşme yoksa boş liste.
-function dialCountries(phone) {
-  const digits = String(phone || "").replace(/^\+/, "");
-  let best = 0, out = [];
-  for (const [iso, code] of Object.entries(DIAL_CODES)) {
-    if (digits.startsWith(code)) {
-      if (code.length > best) { best = code.length; out = [iso]; }
-      else if (code.length === best) out.push(iso);
-    }
-  }
-  return out;
-}
-const HIGH_RISK_CBI = ["AG", "BS", "BH", "BB", "CY", "DM", "GD", "KN", "LC", "SC", "TC", "AE", "VU"];
-const ISO2 = /^[A-Z]{2}$/;
-const isIso2 = (c) => typeof c === "string" && ISO2.test(c);
-
-function parseDate(v) {
-  if (typeof v !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return null;
-  const [y, m, day] = v.split("-").map(Number);
-  const d = new Date(Date.UTC(y, m - 1, day));
-  if (
-    Number.isNaN(d.getTime()) ||
-    d.getUTCFullYear() !== y ||
-    d.getUTCMonth() !== m - 1 ||
-    d.getUTCDate() !== day
-  ) {
-    return null;
-  }
-  return d;
-}
-const yearsBetween = (a, b) => (b - a) / (365.25 * 24 * 3600 * 1000);
-
-function activePartnerList() {
-  if (TR_REPORTABLE_LIST.length > 0) {
-    const label = PARTNER_META.needsRefresh
-      ? `yüklenen listede (${PARTNER_META.asOf || "tarihsiz"}, yenileme gerekli)`
-      : `güncel yüklenen listede (${PARTNER_META.asOf || "tarihsiz"})`;
-    return { list: TR_REPORTABLE_LIST, sourceLabel: label };
-  }
-  return { list: TR_CRS_PARTNERS, sourceLabel: "GİB 2023 listesinde (doğrulanmadı)" };
-}
-
-function validateCrs(form, options = {}) {
-  const errors = [], warnings = [], manual = [];
-  const add = (list, rule, msg) => list.push({ rule, msg });
-  const today = options.today ? (parseDate(options.today) || new Date(options.today)) : new Date();
-
-  // OECD FAQ 1: tek isimli (mononym) kişi geçerlidir; ad "NFN", soyad bu isim olarak raporlanır
-  const nameParts = String(form.fullName || "").trim().split(/\s+/).filter(Boolean);
-  if (nameParts.join("").length < 2) add(errors, "C1", "Ad soyad eksik.");
-  else if (form.accountHolderType === "individual" && nameParts.length === 1) {
-    add(manual, "R7", "Tek isimli (mononym) müşteri: ad NFN, soyad bu isim olarak raporlanır. Kimlik belgesiyle doğrulayın.");
-  }
-  if (form.accountHolderType !== "individual" && form.accountHolderType !== "entity") {
-    add(errors, "C1", "Hesap sahibi türü 'individual' ya da 'entity' olmalı.");
-  }
-  if (!isIso2(form.residenceCountry)) add(errors, "C1", "Vergi ikametgâh ülkesi geçerli ISO kodu olmalı (örn. TR).");
-  if (form.signed !== true) {
-    add(errors, "C1", "Beyan imzalanmamış ya da onaylanmamış.");
-    add(manual, "C7", "İmza yoksa geçici prosedür uygulanıp uygulanmayacağına karar verilmeli.");
-  }
-  const decl = parseDate(form.declarationDate);
-  if (!decl) add(errors, "C1", "Beyan tarihi geçersiz (YYYY-MM-DD).");
-  else if (decl > today) add(errors, "C1", "Beyan tarihi gelecekte görünüyor.");
-  else if (yearsBetween(decl, today) > 1) add(warnings, "C1", "Beyan bir yıldan eski, yenilenmesi gerekebilir.");
-
-  if (form.accountHolderType === "individual") {
-    const dob = parseDate(form.dateOfBirth);
-    if (!dob) add(errors, "C1", "Gerçek kişi için doğum tarihi zorunlu ve geçerli olmalı.");
-    else {
-      const age = yearsBetween(dob, today);
-      if (age < 0) add(errors, "C1", "Doğum tarihi gelecekte görünüyor.");
-      else if (age > 120) add(errors, "C1", "Doğum tarihi makul aralığın dışında.");
-      else if (age < 18) add(warnings, "C1", "18 yaşından küçük, vasi beyanı gerekebilir.");
-    }
-  }
-
-  if (Array.isArray(form.taxResidences)) {
-    if (form.taxResidences.length === 0) add(errors, "C5", "Vergi ikametgâh listesi boş (ADGM: beyan 'vergi ikametgâhı yok' ise adres ile çelişki olup olmadığına bakılmalı).");
-    if (!form.taxResidences.every(isIso2)) add(errors, "C5", "Vergi ikametgâh listesinde geçersiz ülke kodu var.");
-    if (isIso2(form.residenceCountry) && !form.taxResidences.includes(form.residenceCountry)) {
-      add(errors, "C5", "Beyan edilen ikametgâh ülkesi vergi ikametgâh listesinde yok.");
-    }
-  }
-  // BNZ tamlık kontrolü: adres ülkesi zorunlu
-  if (!form.address || !isIso2(form.address.country)) add(errors, "C1", "Adres ülkesi eksik (tamlık kontrolü).");
-  // BNZ tutarlılık kontrolü: adres ile vergi ikametgâhı çelişiyorsa test başarısız
-  if (form.address && isIso2(form.address.country) && isIso2(form.residenceCountry) && form.address.country !== form.residenceCountry) {
-    add(errors, "C5", "Adres ülkesi ile vergi ikametgâh ülkesi çelişiyor (BNZ tutarlılık kontrolü).");
-  }
-  // BNZ tamlık kontrolü: kurum beyanlarında kontrol eden kişiler
-  if (form.accountHolderType === "entity") {
-    add(manual, "R1", "Kontrol eden kişiler (controlling persons) ve rolleri belirlendi mi, bilgileri eksiksiz mi?");
-  }
-  // BNZ CBI/RBI: yüksek riskli ülkelerde ek due diligence
-  const cbiHits = [form.residenceCountry, form.address && form.address.country, ...(form.taxResidences || [])]
-    .filter((c, i, a) => HIGH_RISK_CBI.includes(c) && a.indexOf(c) === i);
-  if (cbiHits.length > 0) {
-    add(manual, "R2", `CBI/RBI yüksek riskli ülke (${cbiHits.join(", ")}): ek due diligence gerekir. Sor: CBI/RBI ile ikametgâh hakkı alındı mı? Başka ülkede ikametgâh hakkı var mı? Son yıl 90 günden fazla başka ülkede kalındı mı? Son yıl hangi ülkelere gelir vergisi beyanı verildi?`);
-  }
-
-  const tin = typeof form.tin === "string" ? form.tin.trim() : "";
-  const countryIssuesTin = form.countryIssuesTin !== false;
-  if (!tin) {
-    if (countryIssuesTin) {
-      if (!REASON_CODES.has(form.noTinReason)) add(errors, "C6", "TIN yok ve geçerli neden kodu (A, B veya C) girilmemiş.");
-      else if (form.noTinReason === "B" && !String(form.noTinExplanation || "").trim()) {
-        add(errors, "C6", "Neden kodu B için TIN alınamamasının açıklaması zorunlu.");
-      }
-      // BNZ doğruluk kontrolü: neden kodu A, ülkenin TIN vermediği iddiasıdır; tabloda TIN formatı olan bir ülkede şüphelidir
-      if (form.noTinReason === "A" && isIso2(form.residenceCountry) && COUNTRY_TABLE.some((c) => c.code === form.residenceCountry)) {
-        add(manual, "R3", `${form.residenceCountry} için neden kodu A seçildi. OECD AEOI TIN sayfasından ülkenin TIN verip vermediğini kontrol edin.`);
-      }
-    }
-  } else {
-    // BNZ tutarlılık: TIN ve neden kodu birlikte girilemez
-    if (REASON_CODES.has(form.noTinReason)) add(errors, "C6", "TIN ve neden kodu birlikte girilmiş. Yalnızca biri olmalı (BNZ tutarlılık kontrolü).");
-    const rule = isIso2(form.residenceCountry) ? tinCountryCheck(form.residenceCountry, tin) : null;
-    if (rule) {
-      if (!rule.ok) add(errors, "C6", rule.msg);
-    } else {
-      if (!/^[A-Za-z0-9-]{4,25}$/.test(tin)) add(errors, "C6", "TIN biçimi geçersiz (4-25 karakter, harf, rakam, tire).");
-      add(manual, "C6", `${form.residenceCountry || "Ülke"} için TIN formatı bu araçta tanımlı değil, elle kontrol edilmeli.`);
-    }
-  }
-
-  if (isIso2(form.kycCountry) && isIso2(form.residenceCountry) && form.kycCountry !== form.residenceCountry) {
-    add(errors, "C3", "Açılış (KYC) ülkesi ile beyan edilen ikametgâh ülkesi farklı.");
-  }
-  if (!isIso2(form.kycCountry)) add(manual, "C2", "Açılış (KYC) ülkesi yok, makululuk testi tamamlanamadı.");
-  // ADGM/BNZ kontrol listesi maddeleri: manuel kontrol, karar ve belge listesine girmez
-  add(manual, "R5", "Müşterinin kimlik belgesi (pasaport/kimlik) doğrulandı mı?");
-  // CRS göstergesi (c): kurumun ülkesi (TR) dışında telefon var ve TR telefonu yoksa gösterge tetiklenir
-  const phoneList = (form.phones || []).map((p) => String(p).replace(/[\s()-]/g, "")).filter(Boolean);
-  const hasTrPhone = phoneList.some((p) => /^(\+90|0090)/.test(p) || /^05\d{9}$/.test(p));
-  const foreignPhones = phoneList.filter((p) => p.startsWith("+") && !/^\+90/.test(p));
-  if (foreignPhones.length > 0 && !hasTrPhone) {
-    // Telefonun ülkesi beyan edilen bir vergi ikametgâhıysa gösterge beyanla kapanır; değilse ya da bilinmiyorsa manuel
-    const declared = form.taxResidences || [];
-    const unmatched = foreignPhones.filter((p) => !dialCountries(p).some((c) => declared.includes(c)));
-    if (unmatched.length > 0) {
-      add(manual, "R6", `CRS göstergesi (c): TR dışında telefon (${unmatched.join(", ")}) var, TR telefonu yok ve bu ülke beyan edilen ikametgâhlar arasında değil. Belgeyle ya da yeni beyanla kapatılmalı.`);
-    }
-  }
-  // CRS raporlanabilir ülke kontrolü: OECD taahhüdü (katılım) tek başına yeterli değil; kurumun yerel listesinde ve
-  // değişim anlaşması olan ülke olmalı. Yabancı ikametgâh varsa manuel kontrol gerekir.
-  const foreignRes = (form.taxResidences || []).filter((c) => isIso2(c) && c !== RFI_COUNTRY);
-  const { list: reportableList, sourceLabel: listSource } = activePartnerList();
-  const notPartner = foreignRes.filter((c) => !reportableList.includes(c));
-  if (notPartner.length > 0) {
-    add(manual, "R9", `Raporlanabilir ülke kontrolü: ${notPartner.join(", ")} ${listSource} yok. Değişim anlaşması ve güncel liste elle doğrulanmalı.`);
-  }
-  // R10: ilişki yöneticisi bilgisi ve yüksek değerli hesap incelemesi
-  if (form.rmKnowsReportable === true) add(errors, "R10", "İlişki yöneticisi müşterinin raporlanabilir kişi olduğunu biliyor; beyan güvenilir kabul edilemez (reason to know).");
-  if (form.highValue === true) add(manual, "R10", "Yüksek değerli hesap: ilişki yöneticisi incelemesi ve insan onayı gerekli.");
-  // CRS göstergesi (b): kurumun ülkesi dışında güncel adres
-  if (form.address && isIso2(form.address.country) && form.address.country !== RFI_COUNTRY
-      && !(form.taxResidences || []).includes(form.address.country)) {
-    add(manual, "R8", `CRS göstergesi (b): güncel adres TR dışında (${form.address.country}). Beyan ikametgâhı ile ilişkisi belgeyle kapatılmalı.`);
-  }
-  if (form.accountHolderType === "entity") {
-    add(manual, "R4", "İmzalayan yetkilinin ad, ünvan ve sıfatı kayıtlı mı? Kuruluş tarihi/ülkesi, kayıt veya lisans no, e-posta ve telefon alındı mı?");
-  }
-
-  if (errors.some((e) => ["C1", "C3", "C5", "C6"].includes(e.rule))) {
-    add(manual, "C4", "Test başarısız: yeni geçerli beyan ya da belgeli makul açıklama istenmeli.");
-  }
-  return { valid: errors.length === 0, errors, warnings, manual };
-}
-
-// ===== Belge eşlemesi: hangi kural hangi belgeyi istiyor =====
-const DOCS = {
-  C1: "İmzalı, tarihli ve eksiksiz CRS self-certification formu",
-  C2: "Açılış (KYC) ülkesini gösteren kimlik ya da adres belgesi",
-  C3: "Açılış ülkesiyle uyumlu yeni self-certification ya da ikametgâh kanıtı",
-  C4: "Yeni geçerli beyan ya da belgeli makul açıklama",
-  C5: "Vergi ikametgâhı belgesi ve güncel vergi ikametgâh listesi",
-  C6: "TIN, ya da geçerli neden kodu (A, B, C); B için yazılı açıklama",
-  C6M: "TIN'in ülkenin resmi formatına göre elle doğrulanması (bu araçta o ülkenin tablosu yok)",
-  C7: "Geçici prosedür kararı ve imzalı beyan",
-  R1: "Kontrol eden kişilerin kimlik ve rol bilgileri ile kayıtları",
-  R2: "CBI/RBI ek due diligence: müşteri görüşmesi kaydı ve yanıtlar, ikametgâh/vatandaşlık ve vergi beyanı belgeleri",
-  R3: "OECD AEOI TIN sayfası ile neden kodu A'nın doğrulama kaydı",
-  R6: "Yabancı telefonun ikametgâh ile ilişkisini gösteren belge ya da yeni self-certification (CRS gösterge c)",
-  R8: "Yabancı adresin ikametgâh ile ilişkisini gösteren belge ya da self-certification (CRS gösterge b)",
-  R9: "Kurumun yerel raporlanabilir ülke listesi ile değişim anlaşmasının doğrulama kaydı (OECD taahhüdü tek başına yeterli değil)",
-  R10: "İlişki yöneticisinin değerlendirme notu ve yüksek değerli hesap incelemesi kaydı",
-  R7: "Tek isimli müşterinin kimlik belgesi (ad NFN, soyad olarak raporlama kaydı)",
-  F1: "ABD kişisi beyanı (W-9) ya da non-US beyanı (W-8BEN)",
-  F2: "Non-US vatandaşlık belgesi ve Certificate of Loss of Nationality ya da açıklama",
-  F3: "ABD adresinin hesap kayıtlarıyla doğrulanması",
-  F4: "Telefon numarasının hangi ülkeye ait olduğunu gösteren belge ya da açıklama",
-  F5: "Sabit ödeme talimatının iptali ya da ABD dışı hesaba yönlendirme kaydı",
-  F6: "Vekil ya da imza yetkilisinin non-US adres belgesi",
-  F7: "Care-of adres yerine kalıcı ikametgâh kanıtı",
-  F8: "Cure ya da recalcitrant adımları için uzman kararı",
-  F9: "Hesap açılış ve idame gözden geçirme kayıtları"
-};
-
-// Kararı verir: MAKUL DEĞİL / MANUEL İNCELEME / MAKUL
-// F9 her formda standart olarak manuel çıktığı için karara dahil edilmez.
-function verdict(results) {
-  const all = Object.values(results).filter(Boolean);
-  const errors = all.flatMap((r) => r.errors);
-  const action = all.flatMap((r) => [...r.warnings, ...r.manual]).filter((m) => !CHECKLIST_ONLY.includes(m.rule));
-  if (errors.length > 0) return { code: "bad", label: "MAKUL DEĞİL", sub: "Formda düzeltilmesi gereken hatalar var." };
-  if (action.length > 0) return { code: "man", label: "MANUEL İNCELEME GEREKİYOR", sub: "Otomatik karar verilemedi, aşağıdaki maddeleri belgeyle kapatın." };
-  return { code: "ok", label: "MAKUL", sub: "Ön kontrolde hata ya da eksik bulunmadı." };
-}
-
-// Hatalı ve manuel maddelerden istenecek belgeleri çıkarır (tekrarsız)
-function requiredDocs(results) {
-  const all = Object.values(results).filter(Boolean);
-  const items = [];
-  for (const r of all) {
-    items.push(...r.errors, ...r.warnings);
-    for (const m of r.manual) items.push({ ...m, rule: m.rule === "C6" ? "C6M" : m.rule });
-  }
-  const seen = new Map();
-  for (const it of items) {
-    if (CHECKLIST_ONLY.includes(it.rule)) continue;
-    const doc = DOCS[it.rule];
-    if (!doc) continue;
-    if (!seen.has(doc)) seen.set(doc, { rule: it.rule === "C6M" ? "C6" : it.rule, doc });
-  }
-  return [...seen.values()];
-}
-
-// Ham form değerlerinden kontrol nesnesi üretir
-function buildForm(v) {
-  const up = (s) => String(s || "").trim().toUpperCase();
-  const list = (s) => String(s || "").split(/[,;]/).map((x) => x.trim()).filter(Boolean);
-  return {
-    fullName: v.fullName,
-    accountHolderType: v.accountHolderType,
-    residenceCountry: up(v.residenceCountry),
-    taxResidences: list(v.taxResidences).map(up),
-    dateOfBirth: v.dateOfBirth,
-    declarationDate: v.declarationDate,
-    signed: v.signed === true,
-    tin: v.tin,
-    noTinReason: v.noTinReason,
-    noTinExplanation: v.noTinExplanation,
-    countryIssuesTin: v.countryIssuesTin === true,
-    kycCountry: up(v.kycCountry),
-    address: { country: up(v.addressCountry), isPoBox: v.isPoBox === true, careOf: v.careOf === true, soleAddress: v.soleAddress === true },
-    citizenship: up(v.citizenship),
-    birthCountry: up(v.birthCountry),
-    phones: list(v.phones),
-    usPersonDeclared: v.usPersonDeclared === true,
-    usGreenCard: v.usGreenCard === true,
-    highValue: v.highValue === true,
-    rmKnowsReportable: v.rmKnowsReportable === true,
-    usDays183: v.usDays183 === true,
-    standingUsInstructions: v.standingUs === true ? [{}] : [],
-    usPoaOrSigners: v.usPoa === true ? [{ usAddress: true }] : [],
-    birthCountryCureDocs: v.cureDocs
-  };
-}
-
-function isBlankForm(v) {
-  const textIds = ["fullName","dateOfBirth","declarationDate","residenceCountry","taxResidences","tin","noTinExplanation","addressCountry","kycCountry","citizenship","birthCountry","phones","cureDocs"];
-  const anyText = textIds.some((id) => String(v[id] || "").trim());
-  const anyFlag = !!(v.signed || v.usPersonDeclared || v.standingUs || v.usPoa || v.usGreenCard || v.usDays183 || v.highValue || v.rmKnowsReportable || v.isPoBox || v.careOf || v.soleAddress);
-  const reason = !!v.noTinReason;
-  return !anyText && !anyFlag && !reason;
-}
-
-const REMEDIATION_META = {
-  F1: { action: "ABD kişi statüsünü (W-9 ve SSN/ITIN/EIN) veya yabancı statüsünü (W-8BEN/W-8BEN-E ve kimlik/mukimlik kanıtı) netleştirin.", forms: ["IRS Form W-9", "IRS Form W-8BEN / W-8BEN-E"] },
-  F2: { action: "ABD doğum yeri göstergesi için CLN (DS-4083) veya yazılı vatandaşlık açıklaması ile ABD dışı pasaport temin edin.", forms: ["IRS Form W-8BEN", "CLN / DS-4083"] },
-  F3: { action: "ABD ikamet/posta adresi göstergesini hesap kayıtlarıyla doğrulayın ve ABD dışı mukimlik kanıtı alın.", forms: ["IRS Form W-8BEN / W-8BEN-E"] },
-  F4: { action: "+1 ülke kodlu telefon numarasının ait olduğu ülkeyi teyit edin; W-8BEN ve ABD dışı resmi kimlik ile cure edin.", forms: ["IRS Form W-8BEN"] },
-  F5: { action: "ABD hesabına sabit ödeme talimatı için öz beyan ve belgesel kanıt ile cure işlemini tamamlayın.", forms: ["IRS Form W-8BEN"] },
-  F6: { action: "ABD adresli vekil/imza yetkilisini doğrulayın ve hesap sahibinin ABD kişisi olmadığını belgeleyin.", forms: ["IRS Form W-8BEN"] },
-  F7: { action: "Tek adres olarak kullanılan Care-of adres yerine kalıcı fiziksel ikametgâh kanıtı temin edin.", forms: ["Adres Teyit ve Öz Beyan Formu"] },
-  F8: { action: "ABD göstergeleri için 90 günlük cure takibini başlatın; tamamlanmazsa recalcitrant statüsünü değerlendirin.", forms: ["IRS Form W-8BEN / W-9"] },
-  C1: { action: "Eksiksiz doldurulmuş, tarihli ve imzalı CRS Öz Beyan (Self-Certification) formu temin edin.", forms: ["CRS Self-Certification Form"] },
-  C2: { action: "Açılış (KYC/AML) ülke bilgisini tamamlayıp makululuk testini yeniden çalıştırın.", forms: ["KYC Müşteri Tanıma Formu"] },
-  C3: { action: "KYC ülkesi ile beyan edilen vergi ikametgâhı çelişkisini yeni öz beyan veya mukimlik belgesiyle giderin.", forms: ["CRS Self-Certification Form", "Vergi Mukimlik Belgesi"] },
-  C4: { action: "Test başarısızlığı nedeniyle yeni geçerli beyan veya belgeli makul açıklama alın.", forms: ["Yenilenmiş CRS Self-Certification Form"] },
-  C5: { action: "Vergi ikametgâh listesi ile adres uyumsuzluğunu resmi ikamet kanıtı veya yazılı açıklamayla kapatın.", forms: ["CRS Self-Certification Form"] },
-  C6: { action: "TIN formatını doğrulayın veya geçerli TIN yokluk neden kodunu (A/B/C) ve B açıklamasını kaydedin.", forms: ["CRS TIN Beyan Eki"] },
-  C7: { action: "İmzasız beyan için geçici prosedür onayını ve ıslak/elektronik imzayı tamamlayın.", forms: ["İmzalı CRS Self-Certification Form"] }
-};
-
-function buildRemediationPlan(results) {
-  if (!results || typeof results !== "object") return [];
-  const all = Object.values(results).filter(Boolean);
-  const buckets = [
-    { items: all.flatMap((r) => r.errors || []), severity: "ERROR", priority: "IMMEDIATE", deadlineDays: 30 },
-    { items: all.flatMap((r) => r.manual || []), severity: "MANUAL", priority: "HIGH", deadlineDays: 60 },
-    { items: all.flatMap((r) => r.warnings || []), severity: "WARNING", priority: "STANDARD", deadlineDays: 90 }
-  ];
-  const byRule = new Map();
-  for (const b of buckets) {
-    for (const it of b.items) {
-      if (!it || !it.rule || CHECKLIST_ONLY.includes(it.rule)) continue;
-      const rule = it.rule;
-      const meta = REMEDIATION_META[rule] || {
-        action: DOCS[rule] || `${rule} kuralı kapsamında uyum incelemesi ve belge doğrulaması yapın.`,
-        forms: ["CRS / FATCA Öz Beyan Formu"]
-      };
-      const docKey = b.severity === "MANUAL" && rule === "C6" ? "C6M" : rule;
-      const evidence = DOCS[docKey] || DOCS[rule] || "Destekleyici resmi kimlik ve mukimlik belgesi";
-      if (!byRule.has(rule)) {
-        byRule.set(rule, {
-          rule,
-          severity: b.severity,
-          priority: b.priority,
-          deadlineDays: b.deadlineDays,
-          action: meta.action,
-          requiredForms: meta.forms,
-          evidence,
-          triggers: [it.msg]
-        });
-      } else {
-        const ex = byRule.get(rule);
-        if (!ex.triggers.includes(it.msg)) ex.triggers.push(it.msg);
-      }
-    }
-  }
-  const order = { IMMEDIATE: 1, HIGH: 2, STANDARD: 3 };
-  return Array.from(byRule.values()).sort((a, b) => (order[a.priority] - order[b.priority]) || a.rule.localeCompare(b.rule));
-}
-
-function check(v, today) {
-  if (isBlankForm(v)) {
-    const empty = { valid: false, errors: [{ rule: "C1", msg: "Form boş. En az müşteri bilgileri, vergi ikametgâhı ve adres alanlarını doldurun." }], warnings: [], manual: [] };
-    const results = { fatca: { valid: true, errors: [], warnings: [], manual: [] }, crs: empty };
-    return { results, verdict: verdict(results), docs: requiredDocs(results), remediationPlan: buildRemediationPlan(results), blank: true };
-  }
-  const form = buildForm(v);
-  const results = {
-    fatca: validateFatca(form),
-    crs: validateCrs(form, { today })
-  };
-  return { results, verdict: verdict(results), docs: requiredDocs(results), remediationPlan: buildRemediationPlan(results), blank: false };
-}
-
-const PRESETS = {
-  usIndicia: {
-    fullName: "John Kerem Demir", accountHolderType: "individual", dateOfBirth: "1985-08-22",
-    signed: true, residenceCountry: "TR", taxResidences: "TR", tin: "12345678901", noTinReason: "", noTinExplanation: "",
-    countryIssuesTin: true, addressCountry: "TR", kycCountry: "TR",
-    isPoBox: false, careOf: false, soleAddress: false,
-    citizenship: "TR", birthCountry: "US", phones: "+1 212 555 0199", cureDocs: "",
-    usPersonDeclared: false, standingUs: true, usPoa: false, usGreenCard: false, usDays183: false,
-    highValue: true, rmKnowsReportable: false
-  },
-  multiResident: {
-    fullName: "Elif Muller", accountHolderType: "individual", dateOfBirth: "1978-03-11",
-    signed: true, residenceCountry: "DE", taxResidences: "DE, TR", tin: "12345678901", noTinReason: "", noTinExplanation: "",
-    countryIssuesTin: true, addressCountry: "TR", kycCountry: "TR",
-    isPoBox: false, careOf: false, soleAddress: false,
-    citizenship: "TR", birthCountry: "TR", phones: "+49 170 1234567", cureDocs: "",
-    usPersonDeclared: false, standingUs: false, usPoa: false, usGreenCard: false, usDays183: false,
-    highValue: false, rmKnowsReportable: false
-  },
-  passiveEntity: {
-    fullName: "Bogazici Yatirim Holding A.S.", accountHolderType: "entity", dateOfBirth: "",
-    signed: true, residenceCountry: "DE", taxResidences: "DE", tin: "", noTinReason: "B", noTinExplanation: "Vergi dairesi tescil sureci devam ediyor",
-    countryIssuesTin: true, addressCountry: "DE", kycCountry: "DE",
-    isPoBox: false, careOf: false, soleAddress: false,
-    citizenship: "", birthCountry: "", phones: "+49 30 123456", cureDocs: "",
-    usPersonDeclared: false, standingUs: false, usPoa: true, usGreenCard: false, usDays183: false,
-    highValue: true, rmKnowsReportable: false
-  }
-};
-
-function exportAuditReport(v, today, format = "json") {
-  const out = check(v, today);
-  const report = {
-    generatedAt: new Date().toISOString(),
-    checkDate: today,
-    customer: {
-      fullName: v.fullName || "",
-      accountHolderType: v.accountHolderType || "individual",
-      residenceCountry: v.residenceCountry || "",
-      taxResidences: v.taxResidences || "",
-      tin: v.tin || "",
-      noTinReason: v.noTinReason || ""
-    },
-    verdict: out.verdict,
-    requiredDocs: out.docs,
-    remediationPlan: out.remediationPlan,
-    results: out.results
-  };
-  if (format === "csv") {
-    const esc = (s) => `"${String(s == null ? "" : s).replace(/"/g, '""')}"`;
-    const rows = [
-      ["Section", "Rule", "Severity", "Message"],
-      ["VERDICT", out.verdict.code, out.verdict.label, out.verdict.sub]
-    ];
-    for (const [sec, res] of [["FATCA", out.results.fatca], ["CRS", out.results.crs]]) {
-      for (const e of (res.errors || [])) rows.push([sec, e.rule, "ERROR", e.msg]);
-      for (const w of (res.warnings || [])) rows.push([sec, w.rule, "WARNING", w.msg]);
-      for (const m of (res.manual || [])) rows.push([sec, m.rule, "MANUAL", m.msg]);
-    }
-    for (const d of (out.docs || [])) rows.push(["DOCUMENT", d.rule, "REQUIRED_DOC", d.doc]);
-    for (const p of (out.remediationPlan || [])) rows.push(["REMEDIATION", p.rule, `${p.priority} (${p.deadlineDays}d)`, `${p.action} | Forms: ${p.requiredForms.join("; ")}`]);
-    return rows.map((r) => r.map(esc).join(",")).join("\n");
-  }
-  return JSON.stringify(report, null, 2);
-}
-
-const TIN_FORMAT_GUIDES = {
-  TR: { country: "TR", label: "Türkiye", example: "12345678901 (TCKN - 11 hane) / 1234567890 (VKN - 10 hane)", expectedLengths: "10|11", formatInfo: "Gerçek kişiler için 11 haneli TCKN, tüzel kişiler için 10 haneli VKN (tamamen rakam)." },
-  US: { country: "US", label: "ABD", example: "123-45-6789 (SSN/ITIN) / 12-3456789 (EIN)", expectedLengths: "9", formatInfo: "SSN/ITIN: XXX-XX-XXXX (9 rakam); Tüzel EIN: XX-XXXXXXX (9 rakam)." },
-  DE: { country: "DE", label: "Almanya", example: "12345678901 (11 haneli Steuer-IdNr)", expectedLengths: "11|13", formatInfo: "11 haneli Steuer-IdNr (bireysel) veya 13 haneli Steuernummer." },
-  GB: { country: "GB", label: "Birleşik Krallık", example: "1234567890 (10 hane UTR) / AB123456C (9 hane NINO)", expectedLengths: "9|10", formatInfo: "10 haneli UTR (tamamen rakam) veya 9 karakterli NINO (2 harf + 6 rakam + 1 harf)." },
-  FR: { country: "FR", label: "Fransa", example: "1234567890123 (13 hane SPI) / 123456789 (9 hane SIREN)", expectedLengths: "9|13|14", formatInfo: "13 haneli bireysel vergi numarası (SPI), 9 haneli SIREN veya 14 haneli SIRET." },
-  NL: { country: "NL", label: "Hollanda", example: "123456782 (9 haneli BSN / RSIN)", expectedLengths: "9", formatInfo: "9 haneli sayı (BSN / RSIN), 11-test kontrol basamağı ile." },
-  CH: { country: "CH", label: "İsviçre", example: "756.1234.5678.97 (AHV) / CHE-123.456.789 (UID)", expectedLengths: "9|12|13", formatInfo: "'756' ön ekli 13 haneli AHV veya 'CHE' ön ekli 9 rakamlı UID." },
-  IT: { country: "IT", label: "İtalya", example: "RSSMRA85T10A562S (16 karakter) / 12345678903 (11 rakam)", expectedLengths: "11|16", formatInfo: "Codice Fiscale: 16 alfanümerik karakter; Partita IVA: 11 rakam." }
-};
-
-function getTinFormatGuide(countryCode) {
-  const code = String(countryCode || "").trim().toUpperCase();
-  if (!/^[A-Z]{2}$/.test(code)) {
-    return {
-      country: code,
-      known: false,
-      label: "Bilinmeyen Ülke",
-      example: "Örn. 12345678901",
-      expectedLengths: "4-25",
-      formatInfo: "Geçerli 2 harfli ISO ülke kodu giriniz (örn. TR, DE, US, GB, FR)."
-    };
-  }
-  if (TIN_FORMAT_GUIDES[code]) {
-    return { known: true, ...TIN_FORMAT_GUIDES[code] };
-  }
-  const entry = COUNTRY_TABLE.find((c) => c.code === code);
-  if (entry) {
-    const lens = entry.allowedLengths || (entry.maxLength ? `1-${entry.maxLength}` : "Değişken");
-    const firstLen = Number(String(entry.allowedLengths || "9").split("|")[0]) || 9;
-    const sample = entry.digitsOnly ? "123456789012345".slice(0, firstLen) : "A123456789".slice(0, firstLen);
-    return {
-      country: code,
-      known: true,
-      label: entry.label || code,
-      example: sample,
-      expectedLengths: lens,
-      formatInfo: entry.formatInfo || `${code} resmi TIN formatı (${lens} karakter).`
-    };
-  }
-  return {
-    country: code,
-    known: false,
-    label: code,
-    example: "1234567890",
-    expectedLengths: "4-25",
-    formatInfo: `${code} için özel tablo kaydı yok; 4-25 karakter alfanümerik genel CRS TIN kontrolü uygulanır.`
-  };
-}
-
-function checkXmlFilingReadiness(record) {
-  const rec = record && typeof record === "object" ? record : null;
-  const missingElements = [];
-  const missingPaths = [];
-  const invalidPaths = [];
-  if (!rec) {
-    const all = ["ReportingFI", "AccountNumber", "ResCountryCode", "TIN", "BirthDate", "DocTypeIndic", "Name", "Address"];
-    return { ready: false, status: "FAIL", missingElements: all, missingPaths: all, invalidPaths: [] };
-  }
-  const holderType = String(rec.accountHolderType || "individual").trim().toLowerCase();
-  const isEntity = holderType === "entity" || holderType === "organisation" || holderType === "organization";
-  const holderTag = isEntity ? "Organisation" : "Individual";
-  const addMiss = (elName, path) => { missingElements.push(elName); missingPaths.push(path); };
-
-  if (!String(rec.reportingFi || rec.reportingFI || rec.ReportingFI || rec.fiName || "").trim()) {
-    addMiss("ReportingFI", "ReportingFI");
-  }
-  if (!String(rec.accountNumber ?? rec.AccountNumber ?? rec.accountNo ?? "").trim()) {
-    addMiss("AccountNumber", "ReportingGroup/AccountReport/AccountNumber");
-  }
-  const resCode = String(rec.resCountryCode || rec.ResCountryCode || rec.residenceCountry || "").trim().toUpperCase();
-  if (!resCode) addMiss("ResCountryCode", `AccountHolder/${holderTag}/ResCountryCode`);
-  else if (!isIso2(resCode)) invalidPaths.push(`AccountHolder/${holderTag}/ResCountryCode`);
-
-  const tinVal = String(rec.tin ?? rec.TIN ?? "").trim();
-  if (!tinVal && rec.countryIssuesTin !== false) {
-    addMiss("TIN", `AccountHolder/${holderTag}/TIN`);
-  }
-
-  const dobStr = String(rec.dateOfBirth || rec.birthDate || rec.BirthDate || "").trim();
-  if (!isEntity) {
-    if (!dobStr) addMiss("BirthDate", "AccountHolder/Individual/BirthInfo/BirthDate");
-    else if (!parseDate(dobStr)) invalidPaths.push("AccountHolder/Individual/BirthInfo/BirthDate");
-  } else if (dobStr && !parseDate(dobStr)) {
-    invalidPaths.push("AccountHolder/Individual/BirthInfo/BirthDate");
-  }
-
-  const docType = String(rec.docTypeIndic || rec.DocTypeIndic || "").trim().toUpperCase();
-  if (!docType) addMiss("DocTypeIndic", "DocSpec/DocTypeIndic");
-  else if (!/^(OECD(0|1|2|3|10|11|12|13)|FATCA(1|2|3|4|11|12|13|14))$/.test(docType)) {
-    invalidPaths.push("DocSpec/DocTypeIndic");
-  }
-
-  if (String(rec.fullName || rec.name || rec.Name || "").trim().length < 2) {
-    addMiss("Name", `AccountHolder/${holderTag}/Name`);
-  }
-  const addrCountry = typeof rec.address === "object" && rec.address
-    ? String(rec.address.country || rec.address.countryCode || "").trim().toUpperCase()
-    : String(rec.addressCountry || "").trim().toUpperCase();
-  if (!addrCountry) addMiss("Address", `AccountHolder/${holderTag}/Address/CountryCode`);
-  else if (!isIso2(addrCountry)) invalidPaths.push(`AccountHolder/${holderTag}/Address/CountryCode`);
-
-  const ready = missingPaths.length === 0 && invalidPaths.length === 0;
-  return { ready, status: ready ? "PASS" : "FAIL", missingElements, missingPaths, invalidPaths };
-}
-
-function detectCsvDelimiter(headerLine) {
-  let inQuotes = false;
-  let commas = 0, semis = 0, tabs = 0;
-  for (let i = 0; i < headerLine.length; i += 1) {
-    const ch = headerLine[i];
-    if (ch === '"') inQuotes = !inQuotes;
-    else if (!inQuotes) {
-      if (ch === ",") commas += 1;
-      else if (ch === ";") semis += 1;
-      else if (ch === "\t") tabs += 1;
-    }
-  }
-  if (tabs > commas && tabs > semis) return "\t";
-  if (semis > commas) return ";";
-  return ",";
-}
-
-function parseCsvRows(csvText) {
-  const clean = String(csvText || "").replace(/^\uFEFF/, "").trim();
-  if (!clean) return [];
-  const firstNl = clean.search(/\r?\n/);
-  const firstLine = firstNl === -1 ? clean : clean.slice(0, firstNl);
-  const delim = detectCsvDelimiter(firstLine);
-
-  const rows = [];
-  let row = [];
-  let cell = "";
-  let inQuotes = false;
-  for (let i = 0; i < clean.length; i += 1) {
-    const ch = clean[i];
-    if (inQuotes) {
-      if (ch === '"') {
-        if (clean[i + 1] === '"') { cell += '"'; i += 1; }
-        else inQuotes = false;
-      } else {
-        cell += ch;
-      }
-    } else if (ch === '"') {
-      inQuotes = true;
-    } else if (ch === delim) {
-      row.push(cell.trim());
-      cell = "";
-    } else if (ch === "\r" || ch === "\n") {
-      if (ch === "\r" && clean[i + 1] === "\n") i += 1;
-      row.push(cell.trim());
-      if (row.some((c) => c !== "")) rows.push(row);
-      row = [];
-      cell = "";
-    } else {
-      cell += ch;
-    }
-  }
-  row.push(cell.trim());
-  if (row.some((c) => c !== "")) rows.push(row);
-  return rows;
-}
-
-const CSV_HEADER_ALIASES = {
-  fullname: "fullName", name: "fullName", ad: "fullName", adsoyad: "fullName",
-  accountholdertype: "accountHolderType", type: "accountHolderType", hesapturu: "accountHolderType",
-  dateofbirth: "dateOfBirth", dob: "dateOfBirth", birthdate: "dateOfBirth", dogumtarihi: "dateOfBirth",
-  declarationdate: "declarationDate", beyantarihi: "declarationDate",
-  signed: "signed", imzali: "signed", imzatarihvar: "signed",
-  residencecountry: "residenceCountry", rescountrycode: "residenceCountry", ikametgah: "residenceCountry", vergiikametgahulkesi: "residenceCountry",
-  taxresidences: "taxResidences", vergiulkeleri: "taxResidences",
-  tin: "tin",
-  notinreason: "noTinReason", nedenkodu: "noTinReason",
-  notinexplanation: "noTinExplanation",
-  countryissuestin: "countryIssuesTin",
-  tinulkevermiyor: "tinUlkeVermiyor",
-  addresscountry: "addressCountry", adresulkesi: "addressCountry",
-  kyccountry: "kycCountry", kyculkesi: "kycCountry",
-  citizenship: "citizenship", vatandaslik: "citizenship",
-  birthcountry: "birthCountry", dogumulkesi: "birthCountry",
-  phones: "phones", phone: "phones", telefon: "phones", telkodu: "phones",
-  curedocs: "cureDocs",
-  uspersondeclared: "usPersonDeclared", abdkisisi: "usPersonDeclared", abdvatanadasi: "usPersonDeclared",
-  standingus: "standingUs", abdtalimati: "standingUs",
-  uspoa: "usPoa", abdvekaleti: "usPoa",
-  usgreencard: "usGreenCard",
-  usdays183: "usDays183",
-  ispobox: "isPoBox",
-  careof: "careOf",
-  soleaddress: "soleAddress",
-  highvalue: "highValue",
-  rmknowsreportable: "rmKnowsReportable",
-  reportingfi: "reportingFi", finame: "reportingFi",
-  accountnumber: "accountNumber", accountno: "accountNumber", hesapno: "accountNumber",
-  doctypeindic: "docTypeIndic"
-};
-
-function screenCsvBatch(csvText, today) {
-  const refToday = today || (() => {
-    const d = new Date();
-    const p = (n) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-  })();
-  const rows = parseCsvRows(csvText);
-  if (rows.length === 0) {
-    return {
-      total: 0, passed: 0, failed: 0, needsManualReview: 0, manualReview: 0,
-      averageRiskScore: 0, xmlReadyCount: 0, xmlNotReadyCount: 0, results: []
-    };
-  }
-
-  const normKey = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-  const headerKeys = rows[0].map((h) => CSV_HEADER_ALIASES[normKey(h)] || null);
-  const hasHeader = headerKeys.filter(Boolean).length >= 2 || headerKeys.includes("fullName") || headerKeys.includes("tin");
-  const defaultCols = [
-    "fullName", "accountHolderType", "dateOfBirth", "declarationDate", "signed",
-    "residenceCountry", "taxResidences", "tin", "addressCountry", "kycCountry",
-    "reportingFi", "accountNumber", "docTypeIndic"
-  ];
-  const cols = hasHeader ? headerKeys : defaultCols;
-  const dataRows = hasHeader ? rows.slice(1) : rows;
-  const hasTaxResCol = cols.includes("taxResidences");
-  const hasDeclDateCol = cols.includes("declarationDate");
-
-  const toBool = (val, fallback) => {
-    const s = String(val === undefined || val === null ? "" : val).trim().toLowerCase();
-    if (!s) return fallback;
-    if (["true", "1", "yes", "evet", "e", "y", "on"].includes(s)) return true;
-    if (["false", "0", "no", "hayir", "hayır", "h", "n", "off"].includes(s)) return false;
-    return fallback;
-  };
-  const normHolderType = (val) => {
-    const s = String(val || "").trim().toLowerCase();
-    if (["entity", "tuzel", "tüzel", "tüzel kişi", "tuzel kisi", "kurum", "organisation", "organization"].includes(s)) return "entity";
-    return "individual";
-  };
-
-  let passed = 0, failed = 0, needsManualReview = 0, totalScore = 0, xmlReadyCount = 0;
-  const results = dataRows.map((cells, idx) => {
-    const raw = {};
-    cols.forEach((key, cIdx) => {
-      if (key) raw[key] = cells[cIdx] !== undefined ? cells[cIdx] : "";
-    });
-
-    const resCountry = String(raw.residenceCountry || "").trim().toUpperCase();
-    const countryIssuesTin = raw.tinUlkeVermiyor !== undefined
-      ? !toBool(raw.tinUlkeVermiyor, false)
-      : toBool(raw.countryIssuesTin, true);
-
-    const formInput = {
-      fullName: raw.fullName || "",
-      accountHolderType: normHolderType(raw.accountHolderType),
-      dateOfBirth: raw.dateOfBirth || "",
-      declarationDate: raw.declarationDate || (!hasDeclDateCol ? refToday : ""),
-      signed: toBool(raw.signed, false),
-      residenceCountry: resCountry,
-      taxResidences: raw.taxResidences !== undefined ? raw.taxResidences : (!hasTaxResCol && resCountry ? resCountry : ""),
-      tin: raw.tin || "",
-      noTinReason: String(raw.noTinReason || "").trim().toUpperCase(),
-      noTinExplanation: raw.noTinExplanation || "",
-      countryIssuesTin,
-      addressCountry: String(raw.addressCountry || "").trim().toUpperCase(),
-      kycCountry: String(raw.kycCountry || "").trim().toUpperCase(),
-      isPoBox: toBool(raw.isPoBox, false),
-      careOf: toBool(raw.careOf, false),
-      soleAddress: toBool(raw.soleAddress, false),
-      citizenship: String(raw.citizenship || "").trim().toUpperCase(),
-      birthCountry: String(raw.birthCountry || "").trim().toUpperCase(),
-      phones: raw.phones || "",
-      cureDocs: raw.cureDocs || "",
-      usPersonDeclared: toBool(raw.usPersonDeclared, false),
-      standingUs: toBool(raw.standingUs, false),
-      usPoa: toBool(raw.usPoa, false),
-      usGreenCard: toBool(raw.usGreenCard, false),
-      usDays183: toBool(raw.usDays183, false),
-      highValue: toBool(raw.highValue, false),
-      rmKnowsReportable: toBool(raw.rmKnowsReportable, false),
-      reportingFi: raw.reportingFi || "",
-      accountNumber: raw.accountNumber || "",
-      docTypeIndic: raw.docTypeIndic || ""
-    };
-
-    const out = check(formInput, refToday);
-    const errs = [...(out.results.fatca.errors || []), ...(out.results.crs.errors || [])];
-    const warns = [...(out.results.fatca.warnings || []), ...(out.results.crs.warnings || [])];
-    const man = [...(out.results.fatca.manual || []), ...(out.results.crs.manual || [])].filter((m) => !CHECKLIST_ONLY.includes(m.rule));
-    const riskScore = Math.min(100, errs.length * 35 + warns.length * 15 + man.length * 10);
-    totalScore += riskScore;
-
-    let status = "PASS";
-    if (out.verdict.code === "bad") { status = "FAIL"; failed += 1; }
-    else if (out.verdict.code === "man") { status = "REVIEW"; needsManualReview += 1; }
-    else { passed += 1; }
-
-    const xml = checkXmlFilingReadiness(formInput);
-    if (xml.ready) xmlReadyCount += 1;
-
-    return {
-      rowIndex: idx + 1,
-      fullName: formInput.fullName || `#${idx + 1}`,
-      accountNumber: formInput.accountNumber || "",
-      status,
-      verdict: out.verdict,
-      riskScore,
-      xmlReady: xml.ready,
-      missingXmlPaths: xml.missingPaths,
-      invalidXmlPaths: xml.invalidPaths,
-      errorCount: errs.length,
-      warningCount: warns.length,
-      manualCount: man.length,
-      remediationCount: (out.remediationPlan || []).length,
-      out
-    };
-  });
-
-  const total = results.length;
-  const averageRiskScore = total > 0 ? Math.round((totalScore / total) * 100) / 100 : 0;
-  return {
-    total,
-    passed,
-    failed,
-    needsManualReview,
-    manualReview: needsManualReview,
-    averageRiskScore,
-    xmlReadyCount,
-    xmlNotReadyCount: total - xmlReadyCount,
-    results
-  };
-}
-
-var ENGINE = { check, buildForm, verdict, requiredDocs, buildRemediationPlan, validateFatca, validateCrs, tinCountryCheck, getTinFormatGuide, checkXmlFilingReadiness, screenCsvBatch, activePartnerList, COUNTRY_TABLE, DOCS, PRESETS, exportAuditReport, getPartnerMeta: () => PARTNER_META };
-</script>
-
+<script src="lib/tin-rules.js"></script>
+<script src="lib/engine.js"></script>
 <script>
-const $ = (id) => document.getElementById(id);
-
-function readValues() {
-  const v = {};
-  for (const el of document.querySelectorAll("input, select")) {
-    v[el.id] = el.type === "checkbox" ? el.checked : el.value;
+var LANG = "tr";
+var last = null;
+var lastBatch = null;
+var I18N = {
+  tr: {
+    title: "FATCA / CRS Müşteri Kontrolü",
+    lead: "Ön kontroldür, hukuki karar değildir. Veriler bu sayfadan dışarı gitmez.",
+    banner: "Ülke listesi 2023 GİB yedeğidir. Raporlamadan önce kurumunuzun güncel listesine bakın.",
+    s1: "1. Müşteri", name: "Ad soyad", type: "Hesap türü", ind: "Gerçek kişi", ent: "Tüzel kişi",
+    dob: "Doğum tarihi", decl: "Beyan tarihi", cit: "Vatandaşlık", birth: "Doğum ülkesi",
+    signed: "Beyan imzalı veya onaylı",
+    s2: "2. Vergi mukimliği ve TIN",
+    s2note: "En fazla üç ülke. TIN yoksa A, B veya C seçin. B için alttaki açıklama zorunludur.",
+    c1: "Ülke 1", t1: "TIN 1", r1: "Neden 1", c2: "Ülke 2", t2: "TIN 2", r2: "Neden 2",
+    c3: "Ülke 3", t3: "TIN 3", r3: "Neden 3", whyB: "Neden B ise açıklama",
+    abc: "A: ülke TIN vermiyor. B: müşteri TIN alamadı. C: ülkenin hukuku TIN istemiyor.",
+    tinHint: "Ülke yazılınca biçim burada görünür.",
+    s3: "3. Adres, KYC ve telefon", addr: "İkamet adresi ülkesi", mail: "Posta adresi ülkesi",
+    kyc: "KYC belge ülkesi", p1: "Telefon 1", p2: "Telefon 2", p3: "Telefon 3",
+    hold: "Kayıtlı tek adres care-of veya hold mail",
+    s4: "4. ABD bağlantısı ve dosya", poa: "Vekil adres ülkesi",
+    stand: "ABD hesabına düzenli ödeme talimatı var",
+    w8: "Dosyada ABD kişisi olmadığına dair öz beyan (W-8BEN) var",
+    pass: "Dosyada ABD dışı statü belgesi (pasaport vb.) var",
+    usp: "Müşteri kendini ABD kişisi olarak beyan etti",
+    gc: "Yeşil kart var", d183: "Bu yıl ABD'de 183 gün veya daha fazla",
+    hv: "Yüksek değerli hesap",
+    rm: "İlişki yöneticisi, müşterinin raporlanabilir kişi olduğunu biliyor",
+    run: "Kontrol et", sample: "Örnek doldur", clear: "Temizle",
+    empty: "Henüz sonuç yok. Kontrol et düğmesine basın.",
+    batch: "Toplu kontrol",
+    batchNote: "Yalnızca örnek veri yapıştırın. Gerçek müşteri dosyasını bu kutuya koymayın. Sonuç CSV'si noktalı virgül kullanır.",
+    runBatch: "Toplu kontrol et", loadSample: "Örnek CSV", saveBatch: "Sonuç CSV indir",
+    findings: "Bulgular", docs: "İstenecek belgeler", noneDocs: "İstenecek ek belge yok.",
+    noneFind: "Bulgu yok.",
+    score: "En yüksek önem", points: "puan",
+    limit: "Ne bakıldı: öz beyan alanları, TIN biçimi, ABD göstergeleri. Ne bakılmadı: belgenin aslı, TIN'in kişiye ait olması. Karar uyum yöneticisinindir.",
+    foot1: "Sınır. Araç belgeyi görmez ve TIN'in kişiye ait olduğunu doğrulamaz. Tüzel müşteri için ayrı öz beyan gerekir.",
+    foot2: "Kaynak. Ayrıntılı kural tablosu docs/kapsam.md dosyasındadır. Ülke listesi 2023 yedeğidir.",
+    batchEmpty: "İşlenecek satır yok.",
+    colNo: "Satır", colName: "Ad", colVerdict: "Karar", colRules: "Kurallar",
+    src: "Kaynak"
+  },
+  en: {
+    title: "FATCA / CRS customer check",
+    lead: "A pre-check, not a legal decision. Data does not leave this page.",
+    banner: "The country list is the 2023 GİB fallback. Check your institution's current list before reporting.",
+    s1: "1. Customer", name: "Full name", type: "Account type", ind: "Individual", ent: "Entity",
+    dob: "Date of birth", decl: "Declaration date", cit: "Citizenship", birth: "Country of birth",
+    signed: "Declaration is signed or affirmed",
+    s2: "2. Tax residence and TIN",
+    s2note: "Up to three countries. If there is no TIN, choose A, B or C. B needs the explanation below.",
+    c1: "Country 1", t1: "TIN 1", r1: "Reason 1", c2: "Country 2", t2: "TIN 2", r2: "Reason 2",
+    c3: "Country 3", t3: "TIN 3", r3: "Reason 3", whyB: "Explanation if reason B",
+    abc: "A: the country does not issue TINs. B: the customer could not obtain a TIN. C: domestic law does not require a TIN.",
+    tinHint: "The format appears here after you enter a country.",
+    s3: "3. Address, KYC and phone", addr: "Residence address country", mail: "Mailing address country",
+    kyc: "KYC document country", p1: "Phone 1", p2: "Phone 2", p3: "Phone 3",
+    hold: "The only address on file is care-of or hold mail",
+    s4: "4. US links and file", poa: "Attorney address country",
+    stand: "Standing instruction to pay a US account",
+    w8: "File contains a non-US self-certification (W-8BEN)",
+    pass: "File contains evidence of non-US status (passport or similar)",
+    usp: "Customer declared themselves a US person",
+    gc: "Green card", d183: "183 days or more in the US this year",
+    hv: "High-value account",
+    rm: "The relationship manager knows the customer is a reportable person",
+    run: "Check", sample: "Fill example", clear: "Clear",
+    empty: "No result yet. Press Check.",
+    batch: "Batch check",
+    batchNote: "Paste example data only. Do not put a real customer file in this box. The result CSV uses semicolons.",
+    runBatch: "Run batch", loadSample: "Example CSV", saveBatch: "Download result CSV",
+    findings: "Findings", docs: "Documents to request", noneDocs: "No extra document to request.",
+    noneFind: "No findings.",
+    score: "Highest severity", points: "score",
+    limit: "Checked: self-certification fields, TIN format, US indicia. Not checked: the original document, whether the TIN belongs to the person. The compliance officer decides.",
+    foot1: "Limit. The tool does not see the document and does not prove the TIN belongs to the person. An entity needs its own self-certification.",
+    foot2: "Source. The rule table is in docs/kapsam.md. The country list is the 2023 fallback.",
+    batchEmpty: "No rows to process.",
+    colNo: "Row", colName: "Name", colVerdict: "Verdict", colRules: "Rules",
+    src: "Source"
   }
-  // Ad alanları: sözlük anahtarlarıyla eşleşmesi için
-  return {
-    fullName: v.fullName, accountHolderType: v.accountHolderType, dateOfBirth: v.dateOfBirth,
-    declarationDate: v.declarationDate, signed: v.signed,
-    residenceCountry: v.residenceCountry, taxResidences: v.taxResidences,
-    tin: v.tin, noTinReason: v.noTinReason, noTinExplanation: v.noTinExplanation,
-    countryIssuesTin: v.countryIssuesTin,
-    addressCountry: v.addressCountry, kycCountry: v.kycCountry,
-    isPoBox: v.isPoBox, careOf: v.careOf, soleAddress: v.soleAddress,
-    citizenship: v.citizenship, birthCountry: v.birthCountry, phones: v.phones,
-    cureDocs: v.cureDocs, usPersonDeclared: v.usPersonDeclared,
-    standingUs: v.standingUs, usPoa: v.usPoa,
-    usGreenCard: v.usGreenCard, usDays183: v.usDays183,
-    highValue: v.highValue, rmKnowsReportable: v.rmKnowsReportable
-  };
-}
-
-function el(tag, cls, text) {
-  const n = document.createElement(tag);
-  if (cls) n.className = cls;
-  if (text !== undefined) n.textContent = text;
-  return n;
-}
-
-function listBlock(title, items, cls, emptyText) {
-  const wrap = el("div");
-  wrap.appendChild(el("h3", null, `${title} (${items.length})`));
-  if (items.length === 0) { wrap.appendChild(el("p", "empty", emptyText)); return wrap; }
-  const ul = el("ul");
-  for (const it of items) {
-    const li = el("li", cls);
-    li.appendChild(el("span", "rule", it.rule));
-    li.appendChild(document.createTextNode(trMsg(it.msg || it.doc)));
-    ul.appendChild(li);
-  }
-  wrap.appendChild(ul);
-  return wrap;
-}
-
-function render(out) {
-  const box = $("results");
-  box.innerHTML = "";
-  box.classList.add("has-result");
-  markFieldErrors(out);
-
-  if (out.blank) {
-    const err = el("div", "run-error", trMsg("Form boş görünüyor. Kontrol için gerekli alanları doldurun; aksi halde sonuç güvenilir olmaz."));
-    box.appendChild(err);
-  }
-
-  const vClass = { ok: "v-ok", man: "v-man", bad: "v-bad" }[out.verdict.code];
-  const vBox = el("div", "verdict " + vClass);
-  vBox.appendChild(el("div", "big", trMsg(out.verdict.label)));
-  vBox.appendChild(el("div", "sub", trMsg(out.verdict.sub)));
-  box.appendChild(vBox);
-
-  box.appendChild(el("h3", null, "İstenecek belgeler ve bilgiler"));
-  if (out.docs.length === 0) {
-    box.appendChild(el("p", "empty", "Ek belge gerektiren bir madde yok."));
-  } else {
-    const ul = el("ul");
-    for (const d of out.docs) {
-      const li = el("li", "doc");
-      li.appendChild(el("span", "rule", d.rule));
-      li.appendChild(document.createTextNode(trMsg(d.doc)));
-      ul.appendChild(li);
-    }
-    box.appendChild(ul);
-  }
-
-  const plan = out.remediationPlan || [];
-  box.appendChild(el("h3", null, "Uyum Aksiyon Planı (Remediation Checklist)"));
-  if (plan.length === 0) {
-    box.appendChild(el("p", "empty", "Acil uyum aksiyonu gerektiren bir bulgu yok."));
-  } else {
-    const ulPlan = el("ul");
-    for (const p of plan) {
-      const cls = p.priority === "IMMEDIATE" ? "err" : p.priority === "HIGH" ? "man" : "warn";
-      const li = el("li", cls);
-      li.appendChild(el("span", "rule", `${p.rule} · ${p.priority} (${p.deadlineDays}g)`));
-      li.appendChild(document.createTextNode(`${p.action} [Form: ${p.requiredForms.join(", ")}]`));
-      ulPlan.appendChild(li);
-    }
-    box.appendChild(ulPlan);
-  }
-
-  const det = document.createElement("details");
-  det.appendChild(el("summary", null, "Kural bazında ayrıntı"));
-  for (const [name, res] of [["FATCA (F1–F9)", out.results.fatca], ["CRS (C1–C7)", out.results.crs]]) {
-    const sec = el("div");
-    const h = el("h3", null, name);
-    h.appendChild(el("span", "badge " + (res.valid ? "ok" : "bad"), res.valid ? "HATA YOK" : "HATA VAR"));
-    sec.appendChild(h);
-    sec.appendChild(listBlock("Hatalar", res.errors, "err", "Hata yok."));
-    sec.appendChild(listBlock("Uyarılar", res.warnings, "warn", "Uyarı yok."));
-    sec.appendChild(listBlock("Manuel inceleme", res.manual, "man", "Manuel madde yok."));
-    det.appendChild(sec);
-  }
-  box.appendChild(det);
-}
-
-// Yerel tarih (YYYY-MM-DD). toISOString() UTC verir; Türkiye'de gece 00:00–03:00 arası bir gün geriden gelir.
-function localToday() {
-  const d = new Date();
-  const p = (n) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-}
-
-function run() {
-  const today = localToday();
-  const v = readValues();
-  // Boş formda otomatik tarih basma; aksi halde boş form "dolu" görünür.
-  const blank = ENGINE.check({ ...v, declarationDate: v.declarationDate || "" }, today).blank;
-  if (!blank && !v.declarationDate) v.declarationDate = today;
-  const out = ENGINE.check(v, today);
-  render(out);
-  $("results").scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-const SAMPLE = {
-  fullName: "Ayşe Örnek", accountHolderType: "individual", dateOfBirth: "1990-05-14",
-  declarationDate: localToday(), signed: true,
-  residenceCountry: "TR", taxResidences: "TR", tin: "12345678901", noTinReason: "", noTinExplanation: "",
-  countryIssuesTin: true, addressCountry: "TR", kycCountry: "TR",
-  isPoBox: false, careOf: false, soleAddress: false,
-  citizenship: "TR", birthCountry: "TR", phones: "+90 532 000 00 00", cureDocs: "",
-  usPersonDeclared: false, standingUs: false, usPoa: false
 };
 
-function fillSample() {
-  for (const [k, val] of Object.entries(SAMPLE)) {
-    const el = $(k);
-    if (!el) continue;
-    if (el.type === "checkbox") el.checked = val === true; else el.value = val;
-  }
+function t(key) { return (I18N[LANG] && I18N[LANG][key]) || key; }
+function $(id) { return document.getElementById(id); }
+
+function applyLang() {
+  document.documentElement.lang = LANG === "en" ? "en" : "tr";
+  document.querySelectorAll("[data-i18n]").forEach(function (el) {
+    var key = el.getAttribute("data-i18n");
+    if (I18N[LANG][key]) el.textContent = I18N[LANG][key];
+  });
+  $("lang").textContent = LANG === "en" ? "Türkçe" : "English";
+  if (last) render(last);
+  if (lastBatch) renderBatch(lastBatch);
 }
 
-function clearForm() {
-  for (const el of document.querySelectorAll("input, select")) {
-    if (el.type === "checkbox") el.checked = el.id === "countryIssuesTin";
-    else if (el.tagName === "SELECT") el.value = el.options[0].value;
-    else el.value = "";
-  }
-  resetResults();
-  clearFieldErrors();
+function readForm() {
+  var v = {};
+  document.querySelectorAll("input, select").forEach(function (el) {
+    if (!el.id) return;
+    v[el.id] = el.type === "checkbox" ? el.checked : el.value;
+  });
+  return v;
 }
 
-function emptyStateHtml() {
-  return `<div class="empty-box" id="emptyState">
-      <p class="title">Henüz sonuç yok</p>
-      <p class="desc">Formu doldurup "Kontrol et" düğmesine basın. Sonuç ve istenecek belgeler burada görünecek. Veriler tarayıcı dışına çıkmaz.</p>
-      <ul>
-        <li>Ad soyad, hesap türü, beyan tarihi ve imza</li>
-        <li>Vergi ikametgâhı / TIN (veya neden kodu)</li>
-        <li>Adres ve KYC ülkesi</li>
-        <li>Varsa ABD bağlantıları (FATCA)</li>
-      </ul>
-    </div>`;
+function setForm(data) {
+  Object.keys(data).forEach(function (k) {
+    var el = $(k);
+    if (!el) return;
+    if (el.type === "checkbox") el.checked = data[k] === true;
+    else el.value = data[k] == null ? "" : data[k];
+  });
 }
 
-function resetResults() {
-  const box = $("results");
-  box.classList.remove("has-result");
-  box.innerHTML = emptyStateHtml();
+function todayStr() {
+  var d = new Date();
+  var p = function (n) { return String(n).padStart(2, "0"); };
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+}
+
+function sampleForm() {
+  return {
+    fullName: "Ayşe Örnek", accountHolderType: "individual", dateOfBirth: "1990-05-14",
+    declarationDate: todayStr(), signed: true, citizenship: "TR", birthCountry: "TR",
+    res1: "TR", tin1: "10000001136", reason1: "", res2: "", tin2: "", reason2: "",
+    res3: "", tin3: "", reason3: "", noTinExplanation: "",
+    addressCountry: "TR", mailCountry: "TR", kycCountry: "TR",
+    phone1: "+90 500 000 00 01", phone2: "", phone3: "", holdMailSole: false,
+    poaCountry: "", standingUs: false, nonUsCert: false, nonUsEvidence: false,
+    usPersonDeclared: false, usGreenCard: false, usDays183: false,
+    highValue: false, rmKnowsReportable: false
+  };
 }
 
 function clearFieldErrors() {
-  document.querySelectorAll(".field-err").forEach((n) => n.classList.remove("field-err"));
+  document.querySelectorAll(".field-err").forEach(function (n) { n.classList.remove("field-err"); });
 }
 
-function markFieldErrors(out) {
+function markFields(findings) {
   clearFieldErrors();
-  const map = {
-    C1: ["fullName","declarationDate","dateOfBirth","residenceCountry","addressCountry","signed"],
-    C3: ["kycCountry","residenceCountry"],
-    C5: ["taxResidences","residenceCountry","addressCountry"],
-    C6: ["tin","noTinReason","noTinExplanation"],
-    F1: ["citizenship","residenceCountry","tin","usPersonDeclared"],
-    R10: ["rmKnowsReportable","highValue"]
+  var map = {
+    C23: ["fullName"], C22: ["dateOfBirth"], C19: ["declarationDate"], C21: ["signed"],
+    C01: ["res1"], C03: ["addressCountry"], C04: ["mailCountry"], C05: ["addressCountry"],
+    C08: ["tin1", "reason1"], C10: ["tin1", "reason1"], C11: ["noTinExplanation"],
+    C13: ["tin1"], C24: ["kycCountry"], F01: ["citizenship"], F02: ["birthCountry"],
+    F03: ["addressCountry"], F12: ["usGreenCard", "usDays183", "usPersonDeclared"]
   };
-  const rules = new Set();
-  for (const res of Object.values(out.results || {})) {
-    for (const e of (res.errors || [])) rules.add(e.rule);
-  }
-  for (const rule of rules) {
-    for (const id of (map[rule] || [])) {
-      const node = $(id);
-      if (node) node.classList.add("field-err");
-    }
-  }
+  findings.forEach(function (f) {
+    (map[f.id] || []).forEach(function (id) {
+      var el = $(id);
+      if (el) el.classList.add("field-err");
+    });
+  });
 }
 
+function msgOf(f) { return LANG === "en" ? f.msgEn : f.msg; }
+function docOf(d) { return LANG === "en" ? d.docEn : d.doc; }
 
-function applyPreset(presetKey) {
-  const preset = ENGINE.PRESETS[presetKey];
-  if (!preset) return;
-  const data = { ...preset, declarationDate: localToday() };
-  for (const [k, val] of Object.entries(data)) {
-    const node = $(k);
-    if (!node) continue;
-    if (node.type === "checkbox") node.checked = val === true; else node.value = val;
+function render(out) {
+  last = out;
+  var box = $("results");
+  box.innerHTML = "";
+  markFields(out.findings || []);
+  var v = out.verdict || {};
+  var cls = v.code === "bad" ? "v-bad" : v.code === "man" ? "v-man" : v.code === "none" ? "v-bad" : "v-ok";
+  var vBox = document.createElement("div");
+  vBox.className = "verdict " + cls;
+  var big = document.createElement("div");
+  big.className = "big";
+  big.textContent = LANG === "en" ? (v.labelEn || v.label) : v.label;
+  var sub = document.createElement("div");
+  sub.className = "sub";
+  sub.textContent = LANG === "en" ? (v.subEn || v.sub) : v.sub;
+  vBox.appendChild(big);
+  vBox.appendChild(sub);
+  box.appendChild(vBox);
+  if (!out.blank && out.highest && out.highest !== "-") {
+    var meta = document.createElement("p");
+    meta.className = "note";
+    var sev = LANG === "en" ? (out.highestEn || out.highest) : out.highest;
+    meta.textContent = t("score") + ": " + sev + " · " + t("points") + " " + out.score;
+    box.appendChild(meta);
   }
-  run();
+
+  var hF = document.createElement("h3");
+  hF.textContent = t("findings");
+  box.appendChild(hF);
+  var findings = out.findings || [];
+  if (!findings.length) {
+    var empty = document.createElement("p");
+    empty.className = "note";
+    empty.textContent = t("noneFind");
+    box.appendChild(empty);
+  } else {
+    var ul = document.createElement("ul");
+    findings.forEach(function (f) {
+      var li = document.createElement("li");
+      li.className = f.cls === "hata" ? "err" : f.cls === "manuel" ? "man" : "warn";
+      var id = document.createElement("span");
+      id.className = "rule";
+      id.textContent = f.id;
+      var sev = document.createElement("span");
+      sev.className = "sev " + f.cls;
+      sev.textContent = LANG === "en" ? f.severityEn : f.severity;
+      li.appendChild(id);
+      li.appendChild(sev);
+      li.appendChild(document.createTextNode(msgOf(f)));
+      var src = document.createElement("span");
+      src.className = "src";
+      src.textContent = t("src") + ": " + f.source;
+      li.appendChild(src);
+      ul.appendChild(li);
+    });
+    box.appendChild(ul);
+  }
+
+  var hD = document.createElement("h3");
+  hD.textContent = t("docs");
+  box.appendChild(hD);
+  var docs = out.docs || [];
+  if (!docs.length) {
+    var nd = document.createElement("p");
+    nd.className = "note";
+    nd.textContent = t("noneDocs");
+    box.appendChild(nd);
+  } else {
+    var uld = document.createElement("ul");
+    docs.forEach(function (d) {
+      var li = document.createElement("li");
+      var id = document.createElement("span");
+      id.className = "rule";
+      id.textContent = d.id;
+      li.appendChild(id);
+      li.appendChild(document.createTextNode(docOf(d)));
+      uld.appendChild(li);
+    });
+    box.appendChild(uld);
+  }
+  var lim = document.createElement("p");
+  lim.className = "note";
+  lim.textContent = t("limit");
+  box.appendChild(lim);
 }
 
-function downloadFile(content, filename, mime) {
-  const blob = new Blob([content], { type: mime });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
+function run() {
+  if (!window.ENGINE) return;
+  render(ENGINE.checkForm(readForm(), {}));
+  $("results").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function clearForm() {
+  document.querySelectorAll("input, select").forEach(function (el) {
+    if (el.type === "checkbox") el.checked = false;
+    else if (el.tagName === "SELECT") el.selectedIndex = 0;
+    else el.value = "";
+  });
+  clearFieldErrors();
+  last = null;
+  $("results").innerHTML = '<div class="empty-box">' + t("empty") + "</div>";
+  updateTinHint();
+}
+
+function updateTinHint() {
+  var hint = $("tinHint");
+  if (!hint || !window.ENGINE) return;
+  var code = ($("res1").value || "").trim();
+  if (!code) { hint.textContent = t("tinHint"); return; }
+  var g = ENGINE.getTinFormatGuide(code);
+  hint.textContent = g.country + ": " + g.formatInfo;
+}
+
+var EMBEDDED_SAMPLE = [
+  "musteri_no;ad_soyad;musteri_tipi;vatandaslik;dogum_ulkesi;ikamet_adresi_ulke;posta_adresi_ulke;tek_adres_care_of_hold_mail;telefon_1;telefon_2;telefon_3;mukimlik_ulke_1;tin_1;tin_yok_nedeni_1;mukimlik_ulke_2;tin_2;tin_yok_nedeni_2;mukimlik_ulke_3;tin_3;tin_yok_nedeni_3;tin_yok_aciklama;abd_hesabina_duzenli_talimat;vekil_imza_yetkilisi_adres_ulke;abd_degil_ozbeyan;abd_olmama_belge;ozbeyan_tarihi",
+  "ORNEK-001;ÖRNEK VERİ - Temiz kayıt;G;TR;TR;TR;TR;H;+90 500 000 00 01;;;TR;10000001136;;;;;;;;;H;;;;15.03.2024",
+  "ORNEK-004;ÖRNEK VERİ - ABD doğumlu;G;TR;US;TR;TR;H;+90 500 000 00 01;;;TR;10000001136;;;;;;;;;H;;;;15.03.2024",
+  "ORNEK-016;ÖRNEK VERİ - TIN yok;G;FR;TR;FR;FR;H;+33 6 12 34 56 78;;;FR;;;;;;;;;;H;;;;15.03.2024"
+].join("\n");
+
+function renderBatch(summary) {
+  lastBatch = summary;
+  var box = $("batchOut");
+  box.innerHTML = "";
+  if (!summary || summary.error) {
+    var p = document.createElement("p");
+    p.className = "note";
+    p.textContent = summary && summary.error ? summary.error : t("batchEmpty");
+    box.appendChild(p);
+    return;
+  }
+  if (!summary.total) {
+    var e = document.createElement("p");
+    e.className = "note";
+    e.textContent = t("batchEmpty");
+    box.appendChild(e);
+    return;
+  }
+  var note = document.createElement("p");
+  note.className = "note";
+  var c = summary.counts || {};
+  note.textContent = summary.total + " · Makul " + (c.ok || 0) + " · Manuel " + (c.man || 0) + " · Makul değil " + (c.bad || 0);
+  box.appendChild(note);
+  var table = document.createElement("table");
+  var hr = document.createElement("tr");
+  [t("colNo"), t("colName"), t("colVerdict"), t("colRules")].forEach(function (h) {
+    var th = document.createElement("th");
+    th.textContent = h;
+    hr.appendChild(th);
+  });
+  var thead = document.createElement("thead");
+  thead.appendChild(hr);
+  table.appendChild(thead);
+  var tb = document.createElement("tbody");
+  summary.results.forEach(function (r) {
+    var tr = document.createElement("tr");
+    [r.rowIndex, r.fullName, (LANG === "en" ? r.verdict.labelEn : r.verdict.label), r.ruleIds.join(", ")].forEach(function (val) {
+      var td = document.createElement("td");
+      td.textContent = val;
+      tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+  table.appendChild(tb);
+  box.appendChild(table);
+}
+
+function downloadCsv(content, filename) {
+  var blob = new Blob([content], { type: "text/csv;charset=utf-8" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
   a.href = url;
   a.download = filename;
   document.body.appendChild(a);
   a.click();
-  document.body.removeChild(a);
+  a.remove();
   URL.revokeObjectURL(url);
 }
 
-function handleExport(format) {
-  const today = localToday();
-  const v = readValues();
-  if (!v.declarationDate) v.declarationDate = today;
-  const content = ENGINE.exportAuditReport(v, today, format);
-  const ext = format === "csv" ? "csv" : "json";
-  const mime = format === "csv" ? "text/csv;charset=utf-8" : "application/json;charset=utf-8";
-  downloadFile(content, `fatca-crs-audit-${today}.${ext}`, mime);
-}
-
-function updateTinFormatHint() {
-  const resNode = $("residenceCountry");
-  const tinNode = $("tin");
-  const hintNode = $("tinFormatHint");
-  if (!resNode || !hintNode) return;
-  const code = String(resNode.value || "").trim().toUpperCase();
-  if (!code) {
-    hintNode.textContent = "Ülke kodu girildiğinde resmi TIN formatı ve hane beklentisi burada gösterilir.";
-    if (tinNode) tinNode.placeholder = "boş bırakılabilir";
-    return;
-  }
-  const guide = ENGINE.getTinFormatGuide(code);
-  hintNode.textContent = `[${guide.country} - ${guide.label}] Beklenen uzunluk: ${guide.expectedLengths} karakter · Örnek: ${guide.example} · Kural: ${guide.formatInfo}`;
-  if (tinNode) tinNode.placeholder = `Örn: ${guide.example}`;
-}
-
-function renderBatchResults(summary) {
-  const box = $("batchResults");
-  if (!box) return;
-  box.innerHTML = "";
-  if (!summary || summary.total === 0) {
-    box.appendChild(el("p", "empty", "Taranacak geçerli CSV satırı bulunamadı."));
-    return;
-  }
-
-  const kpi = el("div", "kpi-grid");
-  const addKpi = (val, lbl, cls) => {
-    const card = el("div", "kpi-box" + (cls ? " " + cls : ""));
-    card.appendChild(el("div", "num", String(val)));
-    card.appendChild(el("div", "lbl", lbl));
-    kpi.appendChild(card);
-  };
-  addKpi(summary.total, "Toplam Kayıt", "");
-  addKpi(summary.passed, "Geçti (Makul)", "ok");
-  addKpi(summary.needsManualReview, "Manuel İnceleme", "man");
-  addKpi(summary.failed, "Kaldı (Makul Değil)", "bad");
-  addKpi(summary.averageRiskScore, "Ort. Risk Skoru", summary.averageRiskScore >= 35 ? "bad" : summary.averageRiskScore > 0 ? "man" : "ok");
-  addKpi(`${summary.xmlReadyCount}/${summary.total}`, "XML Hazır", summary.xmlReadyCount === summary.total ? "ok" : "man");
-  box.appendChild(kpi);
-
-  const wrap = el("div", "batch-table-wrap");
-  const tbl = el("table", "batch-table");
-  const thead = document.createElement("thead");
-  const hRow = document.createElement("tr");
-  ["#", "Ad Soyad", "Hesap No", "Durum", "Risk Skoru", "XML Hazırlık", "Eksik / Bulgular"].forEach((col) => {
-    hRow.appendChild(el("th", null, col));
-  });
-  thead.appendChild(hRow);
-  tbl.appendChild(thead);
-
-  const tbody = document.createElement("tbody");
-  for (const r of summary.results) {
-    const tr = document.createElement("tr");
-    tr.appendChild(el("td", null, String(r.rowIndex)));
-    tr.appendChild(el("td", null, r.fullName));
-    tr.appendChild(el("td", null, r.accountNumber || "—"));
-
-    const stTd = document.createElement("td");
-    const stCls = r.status === "PASS" ? "ok" : "bad";
-    const stBadge = el("span", "badge " + stCls, r.status);
-    if (r.status === "REVIEW") stBadge.style.background = "var(--warn)";
-    stTd.appendChild(stBadge);
-    tr.appendChild(stTd);
-
-    tr.appendChild(el("td", null, String(r.riskScore)));
-
-    const xmlTd = document.createElement("td");
-    xmlTd.appendChild(el("span", "badge " + (r.xmlReady ? "ok" : "bad"), r.xmlReady ? "HAZIR" : "EKSIK"));
-    tr.appendChild(xmlTd);
-
-    const detailParts = [];
-    if (r.errorCount > 0) detailParts.push(`Hata: ${r.errorCount}`);
-    if (r.warningCount > 0) detailParts.push(`Uyarı: ${r.warningCount}`);
-    if (r.manualCount > 0) detailParts.push(`Manuel: ${r.manualCount}`);
-    if (!r.xmlReady && r.missingXmlPaths.length > 0) detailParts.push(`XML Eksik: ${r.missingXmlPaths.join(", ")}`);
-    tr.appendChild(el("td", null, detailParts.length > 0 ? detailParts.join(" · ") : "Sorun yok"));
-    tbody.appendChild(tr);
-  }
-  tbl.appendChild(tbody);
-  wrap.appendChild(tbl);
-  box.appendChild(wrap);
-}
-
-function sampleBatchCsv() {
-  const today = localToday();
-  return [
-    "fullName,accountHolderType,dateOfBirth,declarationDate,signed,residenceCountry,taxResidences,tin,addressCountry,kycCountry,reportingFi,accountNumber,docTypeIndic",
-    `Ayşe Örnek,individual,1990-05-14,${today},true,DE,DE,86095742719,DE,DE,Anadolu Bank A.Ş.,TR100001,OECD1`,
-    `Mehmet Demir,individual,1984-09-21,${today},true,TR,TR,12345678901,TR,TR,,TR100002,`,
-    `John Smith,individual,1979-01-15,${today},false,US,US,12345,US,DE,Anadolu Bank A.Ş.,US100003,FATCA1`
-  ].join("\n");
-}
-
-$("residenceCountry").addEventListener("input", updateTinFormatHint);
-$("run").addEventListener("click", run);
-$("sample").addEventListener("click", () => { fillSample(); updateTinFormatHint(); });
-$("presetUs").addEventListener("click", () => { applyPreset("usIndicia"); updateTinFormatHint(); });
-$("presetMulti").addEventListener("click", () => { applyPreset("multiResident"); updateTinFormatHint(); });
-$("presetEntity").addEventListener("click", () => { applyPreset("passiveEntity"); updateTinFormatHint(); });
-$("exportJson").addEventListener("click", () => handleExport("json"));
-$("exportCsv").addEventListener("click", () => handleExport("csv"));
-$("clear").addEventListener("click", () => { clearForm(); updateTinFormatHint(); });
-$("runBatch").addEventListener("click", () => {
-  const text = ($("batchCsvInput") && $("batchCsvInput").value) || "";
-  renderBatchResults(ENGINE.screenCsvBatch(text, localToday()));
-});
-$("sampleBatch").addEventListener("click", () => {
-  if ($("batchCsvInput")) $("batchCsvInput").value = sampleBatchCsv();
-  renderBatchResults(ENGINE.screenCsvBatch($("batchCsvInput").value, localToday()));
-});
-$("clearBatch").addEventListener("click", () => {
-  if ($("batchCsvInput")) $("batchCsvInput").value = "";
-  if ($("batchResults")) $("batchResults").innerHTML = "";
-});
-
-// ===== English UI. Rule messages (F/C/R details) remain in Turkish in this version. =====
-const EN_TEXT = {
-  "Toplu CSV Tarama Paneli (Batch Screening & XML Hazırlık)": "Batch CSV Screening Panel (Multi-Record & XML Readiness)",
-  "Toplu Tara": "Screen Batch",
-  "Örnek CSV Yükle": "Load Sample CSV",
-  "Listeyi Temizle": "Clear List",
-  "Taranacak geçerli CSV satırı bulunamadı.": "No valid CSV rows found to screen.",
-  "Toplam Kayıt": "Total Records",
-  "Geçti (Makul)": "Passed",
-  "Manuel İnceleme": "Manual Review",
-  "Kaldı (Makul Değil)": "Failed",
-  "Ort. Risk Skoru": "Avg. Risk Score",
-  "XML Hazır": "XML Ready",
-  "Hesap No": "Account No",
-  "Durum": "Status",
-  "Risk Skoru": "Risk Score",
-  "XML Hazırlık": "XML Readiness",
-  "Eksik / Bulgular": "Missing / Findings",
-  "HAZIR": "READY",
-  "EKSIK": "MISSING",
-  "Sorun yok": "No issues",
-  "ABD Endiseli Bireysel": "US Indicia Individual",
-  "Coklu Vergi Mukimi": "Multi-Tax Resident",
-  "Tuzel Pasif NFE": "Entity Passive NFE",
-  "JSON Denetim Raporu": "JSON Audit Report",
-  "CSV Denetim Raporu": "CSV Audit Report",
-  "FATCA / CRS Müşteri Kontrolü": "FATCA / CRS Customer Check",
-  "Ön kontroldür, hukuki karar değildir. Veriler yalnızca bu sayfada işlenir, hiçbir yere gönderilmez.": "A pre-check only, not a legal decision. Data is processed on this page only and is not sent anywhere.",
-  "1. Müşteri bilgileri": "1. Customer details",
-  "Ad soyad": "Full name",
-  "Hesap türü": "Account type",
-  "Gerçek kişi": "Individual",
-  "Tüzel kişi": "Entity",
-  "Doğum tarihi": "Date of birth",
-  "gerçek kişi için (YYYY-MM-DD)": "for individuals (YYYY-MM-DD)",
-  "Beyan tarihi": "Declaration date",
-  "(YYYY-MM-DD)": "(YYYY-MM-DD)",
-  "Beyan imzalı ve onaylı": "Declaration signed and confirmed",
-  "2. Vergi ikametgâhı ve TIN": "2. Tax residence and TIN",
-  "Vergi ikametgâh ülkesi": "Tax residence country",
-  "ISO kodu, örn. TR, US, DE": "ISO code, e.g. TR, US, DE",
-  "Tüm vergi ikametgâh ülkeleri": "All tax residence countries",
-  "virgülle, örn. TR, DE": "comma-separated, e.g. TR, DE",
-  "TIN (vergi numarası)": "TIN (tax number)",
-  "boş bırakılabilir": "may be left empty",
-  "TIN yok ise neden kodu": "Reason code if no TIN",
-  "— seçiniz —": "— select —",
-  "A: Ülke TIN vermiyor": "A: Country does not issue TINs",
-  "B: Müşteri TIN alamadı": "B: Customer could not obtain a TIN",
-  "C: TIN gerekmiyor": "C: TIN not required",
-  "Neden kodu B ise açıklama": "Explanation if reason B",
-  "Bu ülke TIN veriyor": "This country issues TINs",
-  "3. Adres ve kurum bilgisi": "3. Address and institution",
-  "Adres ülkesi": "Address country",
-  "Hesap açılış (KYC) ülkesi": "Account opening (KYC) country",
-  "Posta kutusu": "P.O. box",
-  "Care-of adres": "Care-of address",
-  "Bu tek adres": "This is the only address",
-  "4. ABD bağlantıları (FATCA)": "4. US links (FATCA)",
-  "Vatandaşlık": "Citizenship",
-  "ISO kodu": "ISO code",
-  "Doğum ülkesi": "Country of birth",
-  "Telefon numaraları": "Phone numbers",
-  "virgülle": "comma-separated",
-  "ABD doğum yeri ise cure belgesi açıklaması": "Cure document note if US birthplace",
-  "Müşteri ABD kişisi olarak beyan etti": "Customer declared as a US person",
-  "ABD hesabına sabit ödeme talimatı var": "Standing payment instruction to a US account",
-  "ABD adresli vekil ya da imza yetkilisi var": "Attorney or signatory with a US address",
-  "ABD yeşil kart (LPR) sahibi": "US green card (LPR) holder",
-  "Cari yılda ABD'de 183+ gün": "183+ days in the US in the current year",
-  "Yüksek değerli hesap": "High-value account",
-  "İlişki yöneticisi müşterinin raporlanabilir kişi olduğunu biliyor": "Relationship manager knows the customer is a reportable person",
-  "Kontrol et": "Check",
-  "Örnek doldur": "Fill sample",
-  "Temizle": "Clear",
-  "Formu doldurup \"Kontrol et\" düğmesine basın. Sonuç ve istenecek belgeler burada görünecek.": "Fill in the form and press \"Check\". The result and required documents will appear here.",
-  "Formu doldurup \"Kontrol et\" düğmesine basın. Sonuç ve istenecek belgeler burada görünecek. Veriler tarayıcı dışına çıkmaz.": "Fill in the form and press \"Check\". The result and required documents will appear here. Data does not leave the browser.",
-  "Yerleşik liste GİB Yayın 485 (2023) Ek 2 yedeğidir; güncel olmayabilir. Raporlama için kurumunuzun güncel GİB bildirim listesini kontrol edin veya": "The embedded list is the GİB Publication 485 (2023) Annex 2 fallback and may be out of date. For reporting, check your institution's current GİB reportable list or",
-  "Listeyi güncellemek için data/crs-partners.json dosyasını düzenleyin.": "To update the list, edit data/crs-partners.json.",
-  "MANUEL İNCELEME GEREKİYOR": "MANUAL REVIEW REQUIRED",
-  "MAKUL DEĞİL": "NOT REASONABLE",
-  "MAKUL": "REASONABLE",
-  "Otomatik karar verilemedi, aşağıdaki maddeleri belgeyle kapatın.": "No automatic decision. Close the items below with documents.",
-  "Formda düzeltilmesi gereken hatalar var.": "The form has errors to fix.",
-  "Ön kontrolde hata ya da eksik bulunmadı.": "No errors or gaps found in the pre-check.",
-  "İstenecek belgeler ve bilgiler": "Documents and information to request",
-  "Ek belge gerektiren bir madde yok.": "No additional documents required.",
-  "Kural bazında ayrıntı": "Details by rule",
-  "HATA YOK": "NO ERRORS",
-  "HATA VAR": "ERRORS",
-  "Hatalar": "Errors",
-  "Uyarılar": "Warnings",
-  "Manuel inceleme": "Manual review",
-  "Hata yok.": "No errors.",
-  "Uyarı yok.": "No warnings.",
-  "Manuel madde yok.": "No manual items.",
-  "Yasal uyarı:": "Disclaimer:",
-  "Bu araç bir ön kontroldür, hukuki, vergi ya da uyum kararı değildir. Sonuçlar bir uzmanın değerlendirmesinin yerine geçmez.": "This tool is a pre-check, not a legal, tax or compliance decision. Results do not replace a professional's assessment.",
-  "Ortak ülke listesi:": "Partner country list:",
-  "Türkiye'nin CRS ortakları listesi GİB'in 2023 tarihli rehberinden (Yayın 485, Ek 2) alınmıştır ve güncel değildir. Güncel liste için OECD Automatic Exchange Portal'da Türkiye'yi seçerek kontrol edin.": "Turkey's CRS partner list is taken from the 2023 GİB guide (Publication 485, Annex 2) and is out of date. Check the current list on the OECD Automatic Exchange Portal by selecting Türkiye.",
-  "İnsan onayı:": "Human review:",
-  "Sonuç her zaman bir uzman tarafından onaylanmalıdır. Özellikle yüksek değerli hesaplarda ilişki yöneticisinin durumu da değerlendirilmelidir.": "The result must always be approved by a specialist. For high-value accounts, the relationship manager's situation must also be considered.",
-  "Bu sürümde ülke TIN format kuralları yoktur; TIN'ler elle doğrulanır.": "This version has no country TIN format rules; TINs are verified manually.",
-  "Çevrimdışı / tarayıcı içi": "Offline / in-browser",
-  "Henüz sonuç yok": "No result yet",
-  "Formu doldurup Kontrol et düğmesine basın. Sonuç ve istenecek belgeler burada görünecek. Veriler tarayıcı dışına çıkmaz.": "Fill in the form and press Check. The result and required documents will appear here. Data does not leave the browser.",
-  "Ad soyad, hesap türü, beyan tarihi ve imza": "Full name, account type, declaration date and signature",
-  "Vergi ikametgâhı / TIN (veya neden kodu)": "Tax residence / TIN (or reason code)",
-  "Adres ve KYC ülkesi": "Address and KYC country",
-  "Varsa ABD bağlantıları (FATCA)": "US links if any (FATCA)",
-  "Form boş görünüyor. Kontrol için gerekli alanları doldurun; aksi halde sonuç güvenilir olmaz.": "The form looks empty. Fill the required fields; otherwise the result is not reliable.",
-  "Form boş. En az müşteri bilgileri, vergi ikametgâhı ve adres alanlarını doldurun.": "The form is empty. Fill at least customer details, tax residence and address fields.",
-  "Ülke listesi yenilenmeli:": "Country list needs refresh:",
-  "Yerleşik liste GİB Yayın 485 (2023) Ek 2 yedeğidir; güncel olmayabilir. Raporlama için kurumunuzun güncel GİB bildirim listesini veya OECD Automatic Exchange Portal üzerinden Türkiye değişim ilişkilerini kontrol edin. Listeyi güncellemek için data/crs-partners.json dosyasını düzenleyin.": "The embedded list is the GİB Publication 485 (2023) Annex 2 fallback and may be out of date. For reporting, check your institution's current GİB reportable list or Türkiye exchange relationships on the OECD Automatic Exchange Portal. To update the list, edit data/crs-partners.json.",
-  "Ülke listesi:": "Country list:",
-  "Yüklenen liste güncel olarak işaretlenmiş.": "The loaded list is marked current.",
-  "Kaynak:": "Source:",
-  "tarih:": "as of:",
-  "ülke": "countries",
-  "yükleme:": "loaded from:",
-  "Gizlilik:": "Privacy:",
-  "Form verileri yalnızca bu tarayıcı oturumunda işlenir; sunucuya gönderilmez.": "Form data is processed only in this browser session and is not sent to a server.",
-  "Bu araç bir ön kontroldür, hukuki, vergi ya da uyum kararı / tavsiyesi değildir. Sonuçlar bir uzmanın değerlendirmesinin yerine geçmez.": "This tool is a pre-check, not legal, tax or compliance advice. Results do not replace a professional's assessment.",
-  "Yerleşik yedek GİB Yayın 485 (2023) Ek 2'den gelir ve yenilenmelidir. Güncel liste için GİB bildirim yapılan ülke listesini veya OECD Automatic Exchange Portal'da Türkiye değişim ilişkilerini kontrol edin. Kolay güncelleme: data/crs-partners.json.": "The embedded fallback comes from GİB Publication 485 (2023) Annex 2 and needs refresh. For the current list, check the GİB reportable-jurisdiction list or Türkiye exchange relationships on the OECD Automatic Exchange Portal. Easy update: data/crs-partners.json.",
-  "Yerleşik yedek GİB Yayın 485 (2023) Ek 2'den gelir ve yenilenmelidir. Güncel liste için GİB bildirim yapılan ülke listesini veya OECD Automatic Exchange Portal'da Türkiye değişim ilişkilerini kontrol edin. Kolay güncelleme:": "The embedded fallback comes from GİB Publication 485 (2023) Annex 2 and needs refresh. For the current list, check the GİB reportable-jurisdiction list or Türkiye exchange relationships on the OECD Automatic Exchange Portal. Easy update:",
-  "Ülke TIN kuralları:": "Country TIN rules:",
-  "Bu genel sürümde üçüncü taraf ülke TIN format tablosu yoktur; TIN'ler elle doğrulanır. Kurum içi kurallar eklenebilir.": "This public build has no third-party country TIN format table; TINs are verified manually. Institution-specific rules can be added."
-};
-// ===== English rule messages and documents (display only; engine logic is unchanged) =====
-const EN_MSG = {
-  "ABD kişi testi pozitif (yeşil kart ya da 183 gün) ama ABD kişisi beyan edilmemiş.": "US person test is positive (green card or 183 days) but no US person declaration was made.",
-  "ABD kişi testi pozitif: W-9 ve ABD TIN'inin alınması gerekir.": "US person test is positive: a W-9 and a US TIN are required.",
-  "ABD göstergesi cure ya da recalcitrant adımlarına karar gerektirebilir.": "The US indicia may require a decision on cure or recalcitrant steps.",
-  "ABD doğum yeri cure: non-US vatandaşlık belgesi ve Certificate of Loss of Nationality ya da açıklama gerekiyor.": "US place of birth cure: a non-US citizenship document and a Certificate of Loss of Nationality, or an explanation, are required.",
-  "Telefon +1 ile başlıyor, ABD ya da Kanada olabilir. Yabancı numara varsa cure farklı.": "Phone starts with +1; it may be US or Canadian. If it is a foreign number, the cure differs.",
-  "Care-of adres tek adres. Kural bu durumda geçerli, cure gerekir.": "The care-of address is the only address. The rule applies and a cure is required.",
-  "ABD adresi, sabit talimat ya da vekil bilgisi hesap kayıtlarıyla doğrulanmalı.": "US address, standing instruction or attorney details must be verified against account records.",
-  "Yeni hesap açılış ve idame bilgilerinin gözden geçirilmesi manuel yapılmalı.": "Account opening and maintenance information must be reviewed manually.",
-  "ABD TIN'i SSN (XXX-XX-XXXX) ya da ITIN biçiminde olmalı.": "US TIN must be in SSN (XXX-XX-XXXX) or ITIN format.",
-  "Ad soyad eksik.": "Name is missing.",
-  "Tek isimli (mononym) müşteri: ad NFN, soyad bu isim olarak raporlanır. Kimlik belgesiyle doğrulayın.": "Single-name (mononym) customer: first name is reported as NFN and surname as this name. Verify with an identity document.",
-  "İlişki yöneticisi müşterinin raporlanabilir kişi olduğunu biliyor; beyan güvenilir kabul edilemez (reason to know).": "The relationship manager knows the customer is a reportable person; the declaration cannot be relied on (reason to know).",
-  "Yüksek değerli hesap: ilişki yöneticisi incelemesi ve insan onayı gerekli.": "High-value account: relationship manager review and human approval are required.",
-  "İlişki yöneticisinin değerlendirme notu ve yüksek değerli hesap incelemesi kaydı": "Relationship manager assessment note and high-value account review record",
-  "Hesap sahibi türü 'individual' ya da 'entity' olmalı.": "Account holder type must be 'individual' or 'entity'.",
-  "Vergi ikametgâh ülkesi geçerli ISO kodu olmalı (örn. TR).": "Tax residence country must be a valid ISO code (e.g. TR).",
-  "Beyan imzalanmamış ya da onaylanmamış.": "The declaration is not signed or confirmed.",
-  "İmza yoksa geçici prosedür uygulanıp uygulanmayacağına karar verilmeli.": "If unsigned, decide whether a temporary procedure applies.",
-  "Beyan tarihi geçersiz (YYYY-MM-DD).": "Declaration date is invalid (YYYY-MM-DD).",
-  "Beyan tarihi gelecekte görünüyor.": "Declaration date appears to be in the future.",
-  "Beyan bir yıldan eski, yenilenmesi gerekebilir.": "The declaration is over a year old and may need renewal.",
-  "Gerçek kişi için doğum tarihi zorunlu ve geçerli olmalı.": "A valid date of birth is required for individuals.",
-  "Doğum tarihi gelecekte görünüyor.": "Date of birth appears to be in the future.",
-  "Doğum tarihi makul aralığın dışında.": "Date of birth is outside a reasonable range.",
-  "18 yaşından küçük, vasi beyanı gerekebilir.": "Under 18; a guardian declaration may be required.",
-  "Vergi ikametgâh listesi boş (ADGM: beyan 'vergi ikametgâhı yok' ise adres ile çelişki olup olmadığına bakılmalı).": "The tax residence list is empty (ADGM: if the declaration says no tax residence, check for conflicts with the address).",
-  "Vergi ikametgâh listesinde geçersiz ülke kodu var.": "The tax residence list contains an invalid country code.",
-  "Beyan edilen ikametgâh ülkesi vergi ikametgâh listesinde yok.": "The declared residence country is not in the tax residence list.",
-  "Adres ülkesi eksik (tamlık kontrolü).": "Address country is missing (completeness check).",
-  "Adres ülkesi ile vergi ikametgâh ülkesi çelişiyor (BNZ tutarlılık kontrolü).": "Address country conflicts with the tax residence country (BNZ consistency check).",
-  "Kontrol eden kişiler (controlling persons) ve rolleri belirlendi mi, bilgileri eksiksiz mi?": "Have the controlling persons and their roles been identified, and is their information complete?",
-  "TIN yok ve geçerli neden kodu (A, B veya C) girilmemiş.": "No TIN and no valid reason code (A, B or C) entered.",
-  "Neden kodu B için TIN alınamamasının açıklaması zorunlu.": "An explanation is required for reason code B.",
-  "TIN ve neden kodu birlikte girilmiş. Yalnızca biri olmalı (BNZ tutarlılık kontrolü).": "Both a TIN and a reason code were entered. Only one should be filled (BNZ consistency check).",
-  "TIN biçimi geçersiz (4-25 karakter, harf, rakam, tire).": "Invalid TIN format (4-25 characters: letters, digits, hyphens).",
-  "Açılış (KYC) ülkesi ile beyan edilen ikametgâh ülkesi farklı.": "Opening (KYC) country differs from the declared residence country.",
-  "Açılış (KYC) ülkesi yok, makululuk testi tamamlanamadı.": "Opening (KYC) country is missing; the reasonableness test could not be completed.",
-  "Müşterinin kimlik belgesi (pasaport/kimlik) doğrulandı mı?": "Has the customer's identity document (passport or ID) been verified?",
-  "İstenecek belgeler ve bilgiler": "Documents and information to request",
-  "İmzalayan yetkilinin ad, ünvan ve sıfatı kayıtlı mı? Kuruluş tarihi/ülkesi, kayıt veya lisans no, e-posta ve telefon alındı mı?": "Are the signatory's name, title and capacity recorded? Have the incorporation date and country, registration or licence number, email and phone been obtained?",
-  "Test başarısız: yeni geçerli beyan ya da belgeli makul açıklama istenmeli.": "Test failed: a new valid declaration or a documented reasonable explanation is required.",
-  // Belgeler (DOCS)
-  "İmzalı, tarihli ve eksiksiz CRS self-certification formu": "Signed, dated and complete CRS self-certification form",
-  "Açılış (KYC) ülkesini gösteren kimlik ya da adres belgesi": "ID or address document showing the opening (KYC) country",
-  "Açılış ülkesiyle uyumlu yeni self-certification ya da ikametgâh kanıtı": "New self-certification or residence proof consistent with the opening country",
-  "Yeni geçerli beyan ya da belgeli makul açıklama": "New valid declaration or a documented reasonable explanation",
-  "Vergi ikametgâhı belgesi ve güncel vergi ikametgâh listesi": "Tax residence certificate and an up-to-date tax residence list",
-  "TIN, ya da geçerli neden kodu (A, B, C); B için yazılı açıklama": "TIN, or a valid reason code (A, B, C); written explanation for B",
-  "TIN'in ülkenin resmi formatına göre elle doğrulanması (bu araçta o ülkenin tablosu yok)": "Manual check of the TIN against the country's official format (this tool has no table for that country)",
-  "Geçici prosedür kararı ve imzalı beyan": "Decision on a temporary procedure and a signed declaration",
-  "ABD kişisi beyanı (W-9) ya da non-US beyanı (W-8BEN)": "US person declaration (W-9) or non-US declaration (W-8BEN)",
-  "Non-US vatandaşlık belgesi ve Certificate of Loss of Nationality ya da açıklama": "Non-US citizenship document and Certificate of Loss of Nationality, or an explanation",
-  "ABD adresinin hesap kayıtlarıyla doğrulanması": "Verification of the US address against account records",
-  "Telefon numarasının hangi ülkeye ait olduğunu gösteren belge ya da açıklama": "Document or explanation showing which country the phone number belongs to",
-  "Sabit ödeme talimatının iptali ya da ABD dışı hesaba yönlendirme kaydı": "Cancellation of the standing payment instruction, or a record of redirection to a non-US account",
-  "Vekil ya da imza yetkilisinin non-US adres belgesi": "Non-US address document for the attorney or signatory",
-  "Care-of adres yerine kalıcı ikametgâh kanıtı": "Proof of permanent residence instead of a care-of address",
-  "Cure ya da recalcitrant adımları için uzman kararı": "Expert decision on cure or recalcitrant steps",
-  "Hesap açılış ve idame gözden geçirme kayıtları": "Account opening and maintenance review records",
-  "Kontrol eden kişilerin kimlik ve rol bilgileri ile kayıtları": "Identity and role details, and records, of the controlling persons",
-  "CBI/RBI ek due diligence: müşteri görüşmesi kaydı ve yanıtlar, ikametgâh/vatandaşlık ve vergi beyanı belgeleri": "CBI/RBI additional due diligence: interview record and answers, residence/citizenship and tax return documents",
-  "OECD AEOI TIN sayfası ile neden kodu A'nın doğrulama kaydı": "Record of checking reason code A against the OECD AEOI TIN page",
-  "Yabancı telefonun ikametgâh ile ilişkisini gösteren belge ya da yeni self-certification (CRS gösterge c)": "Document or new self-certification showing the link between the foreign phone and residence (CRS indicium c)",
-  "Tek isimli müşterinin kimlik belgesi (ad NFN, soyad olarak raporlama kaydı)": "ID document of the single-name customer (first name NFN, surname as the name; reporting record)",
-  "Yabancı adresin ikametgâh ile ilişkisini gösteren belge ya da self-certification (CRS gösterge b)": "Document or self-certification showing the link between the foreign address and residence (CRS indicium b)",
-  "Kurumun yerel raporlanabilir ülke listesi ile değişim anlaşmasının doğrulama kaydı (OECD taahhüdü tek başına yeterli değil)": "Record verifying the institution's local reportable jurisdiction list and exchange agreement (an OECD commitment alone is not enough)",
-  // Göstergeler (indicia etiketleri, liste içinde geçer)
-  "ABD vatandaşlığı": "US citizenship",
-  "ABD ikametgâhı": "US residence",
-  "ABD doğum yeri": "US place of birth",
-  "Mevcut ABD adresi": "Current US address",
-  "ABD posta kutusu": "US P.O. box",
-  "ABD telefonu (+1)": "US phone (+1)",
-  "ABD hesabına sabit ödeme talimatı": "Standing payment instruction to a US account",
-  "ABD adresli vekil ya da imza yetkilisi": "Attorney or signatory with a US address",
-  "Care-of adres tek adres olarak kullanılıyor": "Care-of address used as the only address"
-};
-const EN_PATTERNS = [
-  [/^ABD ikametgâhı var ama ABD kişisi beyan edilmemiş: (.*)$/s, (m) => "US residence but no US person declaration: " + enIndicia(m[1])],
-  [/^ABD göstergeleri var, ABD kişisi beyan edilmemiş: (.*)$/s, (m) => "US indicia present, no US person declaration: " + enIndicia(m[1])],
-  [/^(\S+) için neden kodu A seçildi\. .*$/s, (m) => "Reason code A selected for " + m[1] + ". Check on the OECD AEOI TIN page whether the country issues TINs."],
-  [/^(.+?) için TIN formatı bu araçta tanımlı değil, elle kontrol edilmeli\.$/s, (m) => "No TIN format rule in this tool for " + m[1] + "; check manually."],
-  [/^CBI\/RBI yüksek riskli ülke \((.*?)\): .*$/s, (m) => "High-risk CBI/RBI country (" + m[1] + "): additional due diligence required. Ask: did the customer obtain residence rights through CBI/RBI? Do they hold residence rights elsewhere? Did they spend more than 90 days elsewhere last year? In which countries did they file personal income tax returns last year?"],
-  [/^CRS göstergesi \(c\): TR dışında telefon \((.*?)\) var.*$/s, (m) => "CRS indicium (c): non-Turkish phone (" + m[1] + ") present, no Turkish phone, and this country is not among the declared residences. Close with documents or a new declaration."],
-  [/^Raporlanabilir ülke kontrolü: (.*?) (.+?) yok\..*$/s, (m) => "Reportable jurisdiction check: " + m[1] + " is not on the " + m[2].replace("GİB 2023 listesinde (doğrulanmadı)", "GİB 2023 list (unverified)").replace("yüklenen listede", "loaded list").replace("güncel yüklenen listede", "current loaded list").replace("tarihsiz", "undated").replace("yenileme gerekli", "refresh needed") + ". Verify the exchange agreement and the current list manually."],
-  [/^CRS göstergesi \(b\): güncel adres TR dışında \((.*?)\)\..*$/s, (m) => "CRS indicium (b): current address outside Turkey (" + m[1] + "). Close with documents or a declaration explaining the residence."]
-];
-function enIndicia(text) {
-  let out = text;
-  for (const [tr, en] of Object.entries(EN_MSG)) {
-    if (tr.length < 60 && out.includes(tr)) out = out.split(tr).join(en);
-  }
-  return out;
-}
-function trMsg(s) {
-  if (LANG !== "en" || typeof s !== "string") return s;
-  if (EN_MSG[s]) return EN_MSG[s];
-  for (const [re, fn] of EN_PATTERNS) {
-    const m = s.match(re);
-    if (m) return fn(m);
-  }
-  return s;
-}
-
-const TR_ORIG = new Map();
-let LANG = "tr";
-function applyLang(lang) {
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-  const nodes = [];
-  while (walker.nextNode()) nodes.push(walker.currentNode);
-  for (const n of nodes) {
-    const tag = n.parentNode && n.parentNode.tagName;
-    if (tag === "SCRIPT" || tag === "STYLE") continue;
-    if (!TR_ORIG.has(n)) TR_ORIG.set(n, n.nodeValue);
-    const orig = TR_ORIG.get(n);
-    const key = orig.trim();
-    const out = lang === "en" && key && EN_TEXT[key] ? orig.replace(key, EN_TEXT[key]) : orig;
-    if (n.nodeValue !== out) n.nodeValue = out;
-  }
-  document.documentElement.lang = lang;
-  $("lang").textContent = lang === "en" ? "Türkçe" : "English";
-}
-
-function updateListBanner() {
-  const banner = $("listBanner");
-  if (!banner) return;
-  const count = (TR_REPORTABLE_LIST.length || TR_CRS_PARTNERS.length);
-  const oecd = "https://www.oecd.org/tax/automatic-exchange/international-framework-for-the-crs/exchange-relationships/";
-  if (PARTNER_META.needsRefresh) {
-    banner.classList.remove("ok-list");
-    banner.innerHTML = `<strong></strong> <span></span> <a href="${oecd}" target="_blank" rel="noopener">OECD Automatic Exchange Portal</a>. <span data-k="json"></span><div class="meta" id="listMeta"></div>`;
-    banner.querySelector("strong").textContent = trMsg("Ülke listesi yenilenmeli:");
-    banner.querySelector("span").textContent = trMsg("Yerleşik liste GİB Yayın 485 (2023) Ek 2 yedeğidir; güncel olmayabilir. Raporlama için kurumunuzun güncel GİB bildirim listesini kontrol edin veya");
-    banner.querySelector("span[data-k=json]").textContent = trMsg("Listeyi güncellemek için data/crs-partners.json dosyasını düzenleyin.");
-  } else {
-    banner.classList.add("ok-list");
-    banner.innerHTML = `<strong></strong> <span></span><div class="meta" id="listMeta"></div>`;
-    banner.querySelector("strong").textContent = trMsg("Ülke listesi:");
-    banner.querySelector("span").textContent = trMsg("Yüklenen liste güncel olarak işaretlenmiş.");
-  }
-  const metaNode = $("listMeta");
-  if (metaNode) {
-    metaNode.textContent = `${trMsg("Kaynak:")} ${PARTNER_META.source} · ${trMsg("tarih:")} ${PARTNER_META.asOf || "—"} · ${count} ${trMsg("ülke")} · ${trMsg("yükleme:")} ${PARTNER_META.loadedFrom}`;
-  }
-}
-
-async function loadPartnerList() {
-  try {
-    const res = await fetch("data/crs-partners.json", { cache: "no-store" });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
-    const countries = Array.isArray(data.countries) ? data.countries.map((c) => String(c).toUpperCase()).filter((c) => /^[A-Z]{2}$/.test(c)) : [];
-    if (countries.length === 0) throw new Error("empty list");
-    TR_REPORTABLE_LIST = countries;
-    PARTNER_META = {
-      asOf: (data.meta && data.meta.as_of) || "",
-      needsRefresh: !(data.meta && data.meta.needs_refresh === false),
-      source: (data.meta && data.meta.source) || "data/crs-partners.json",
-      loadedFrom: "data/crs-partners.json"
-    };
-  } catch (err) {
-    PARTNER_META.loadedFrom = "embedded";
-    PARTNER_META.needsRefresh = true;
-    PARTNER_META.source = "GİB Yayın 485 (2023) Ek 2 — yerleşik yedek";
-    PARTNER_META.asOf = "2023-08";
-  }
-  updateListBanner();
-  if (typeof applyLang === "function") applyLang(LANG);
-}
-
-loadPartnerList();
-
-$("lang").addEventListener("click", () => {
+$("lang").addEventListener("click", function () {
   LANG = LANG === "tr" ? "en" : "tr";
-  updateListBanner();
-  applyLang(LANG);
-  if (document.querySelector("#results .verdict")) run();
-  if ($("batchResults") && $("batchResults").children.length > 0 && $("batchCsvInput")) {
-    renderBatchResults(ENGINE.screenCsvBatch($("batchCsvInput").value, localToday()));
-  }
-  applyLang(LANG);
+  applyLang();
 });
-["run", "sample", "presetUs", "presetMulti", "presetEntity", "clear", "runBatch", "sampleBatch", "clearBatch"].forEach((id) => {
-  if ($(id)) $(id).addEventListener("click", () => setTimeout(() => applyLang(LANG), 0));
+$("run").addEventListener("click", run);
+$("sample").addEventListener("click", function () { setForm(sampleForm()); updateTinHint(); run(); });
+$("clear").addEventListener("click", clearForm);
+$("res1").addEventListener("input", updateTinHint);
+$("runBatch").addEventListener("click", function () {
+  if (!window.ENGINE) return;
+  renderBatch(ENGINE.screenCsv($("batchCsv").value, {}));
 });
+$("loadSample").addEventListener("click", function () {
+  fetch("examples/ornek-musteriler.csv").then(function (r) {
+    if (!r.ok) throw new Error("no");
+    return r.text();
+  }).then(function (text) {
+    $("batchCsv").value = text;
+  }).catch(function () {
+    $("batchCsv").value = EMBEDDED_SAMPLE;
+  });
+});
+$("saveBatch").addEventListener("click", function () {
+  if (!lastBatch || !lastBatch.results) return;
+  downloadCsv(ENGINE.exportBatchCsv(lastBatch), "ornek-sonuc.csv");
+});
+
+fetch("data/crs-partners.json").then(function (r) {
+  if (!r.ok) throw new Error("no");
+  return r.json();
+}).then(function (data) {
+  if (data && data.countries && window.ENGINE) ENGINE.setReportableList(data.countries);
+}).catch(function () {});
 </script>
-<footer>
-  <p><strong>Yasal uyarı:</strong> Bu araç bir ön kontroldür, hukuki, vergi ya da uyum kararı / tavsiyesi değildir. Sonuçlar bir uzmanın değerlendirmesinin yerine geçmez.</p>
-  <p><strong>Ortak ülke listesi:</strong> Yerleşik yedek GİB Yayın 485 (2023) Ek 2'den gelir ve yenilenmelidir. Güncel liste için GİB bildirim yapılan ülke listesini veya OECD Automatic Exchange Portal'da Türkiye değişim ilişkilerini kontrol edin. Kolay güncelleme: <code>data/crs-partners.json</code>.</p>
-  <p><strong>İnsan onayı:</strong> Sonuç her zaman bir uzman tarafından onaylanmalıdır. Özellikle yüksek değerli hesaplarda ilişki yöneticisinin durumu da değerlendirilmelidir.</p>
-  <p><strong>Ülke TIN kuralları:</strong> Bu genel sürümde üçüncü taraf ülke TIN format tablosu yoktur; TIN'ler elle doğrulanır. Kurum içi kurallar eklenebilir.</p>
-  <p><strong>Gizlilik:</strong> Form verileri yalnızca bu tarayıcı oturumunda işlenir; sunucuya gönderilmez.</p>
-</footer>
 </body>
 </html>

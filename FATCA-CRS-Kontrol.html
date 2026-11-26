@@ -3,73 +3,227 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FATCA / CRS Müşteri Kontrolü</title>
+<title>FATCA / CRS Kontrol</title>
 <style>
-  :root { --bg:#f4f6f9; --card:#fff; --ink:#1d2433; --muted:#6b7385; --line:#dde2ea;
-          --err:#c0392b; --warn:#b7791f; --man:#2b6cb0; --ok:#2f855a; }
+  :root {
+    color-scheme: light;
+    --bg: #eef2f6;
+    --bg-accent: #e4ebf3;
+    --card: #ffffff;
+    --ink: #142033;
+    --muted: #5c6b80;
+    --line: #d7e0ea;
+    --accent: #143d66;
+    --accent-soft: #e8f0f8;
+    --ok: #0f7a45;
+    --bad: #b42318;
+    --man: #b45309;
+    --input: #ffffff;
+    --shadow: 0 1px 2px rgba(16, 32, 51, .04), 0 10px 28px rgba(16, 32, 51, .06);
+    --focus: #1d6fbf;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --bg: #0e141c;
+      --bg-accent: #121a24;
+      --card: #17202b;
+      --ink: #e8eef6;
+      --muted: #9aabbf;
+      --line: #2c3b4d;
+      --accent: #9ec0e6;
+      --accent-soft: #1c2c3e;
+      --ok: #3dd68c;
+      --bad: #ff8d84;
+      --man: #f5b942;
+      --input: #101820;
+      --shadow: none;
+      --focus: #7eb6ef;
+    }
+  }
   * { box-sizing: border-box; }
-  body { margin:0; font-family: system-ui, "Segoe UI", Arial, sans-serif; background:var(--bg); color:var(--ink); }
-  header { background:#1d2433; color:#fff; padding:16px 24px; }
-  header h1 { margin:0; font-size:20px; }
-  header p { margin:4px 0 0; font-size:13px; opacity:.85; }
-  main { max-width:1000px; margin:20px auto; padding:0 16px 28px; display:grid; gap:16px; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; }
-  h2 { font-size:17px; margin:0 0 12px; }
-  h3 { font-size:15px; margin:16px 0 8px; }
-  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; }
-  label.f { display:flex; flex-direction:column; gap:4px; font-size:13px; font-weight:600; }
-  label.c { display:flex; align-items:flex-start; gap:8px; font-size:13px; font-weight:500; margin:6px 0; }
-  input[type=text], select {
-    font-size:14px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; font-weight:400; }
-  .hint { font-size:11px; color:var(--muted); font-weight:400; }
-  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:12px; }
-  button { font-size:14px; padding:9px 16px; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer; }
-  button.primary { background:#2b6cb0; color:#fff; border-color:#2b6cb0; font-weight:600; }
-  .verdict { border-radius:10px; padding:18px; color:#fff; text-align:center; }
-  .verdict .big { font-size:28px; font-weight:800; }
-  .verdict .sub { font-size:14px; opacity:.95; margin-top:6px; }
-  .v-ok { background:var(--ok); } .v-man { background:var(--warn); } .v-bad { background:var(--err); }
-  ul { margin:4px 0 0; padding-left:18px; }
-  li { margin:8px 0; line-height:1.45; }
-  li.err { color:var(--err); } li.warn { color:var(--warn); } li.man { color:var(--man); }
-  .rule { font-family: Consolas, monospace; font-weight:700; margin-right:6px; }
-  .sev { font-size:11px; font-weight:700; border-radius:999px; padding:1px 7px; margin-right:6px; }
-  .sev.hata { background:#fde8e6; color:var(--err); }
-  .sev.manuel { background:#e8f1fb; color:var(--man); }
-  .sev.uyari { background:#f8f1de; color:var(--warn); }
-  .src { display:block; font-size:12px; color:var(--muted); font-weight:400; margin-top:2px; }
-  .note { font-size:12px; color:var(--muted); line-height:1.5; }
-  .banner { border:1px solid #f0d9a8; background:#fff8eb; color:#7a4e00; border-radius:10px; padding:12px 14px; font-size:13px; line-height:1.5; }
-  .empty-box { text-align:center; padding:24px 12px; color:var(--muted); }
-  .field-err { border-color:var(--err) !important; background:#fff5f5; }
-  textarea { width:100%; font-family: Consolas, monospace; font-size:12px; padding:10px; border:1px solid var(--line); border-radius:8px; }
-  table { width:100%; border-collapse:collapse; font-size:13px; }
-  th, td { border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
-  th { background:#f7f8fb; }
-  .slot { border-top:1px dashed var(--line); margin-top:10px; padding-top:10px; }
-  footer { max-width:1000px; margin:0 auto 32px; padding:0 16px; font-size:12px; color:#555; line-height:1.5; }
-  header .top { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
-  @media (max-width:600px) { header { padding:14px; } .verdict .big { font-size:22px; } }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    background:
+      radial-gradient(1200px 420px at 10% -10%, var(--bg-accent), transparent 60%),
+      var(--bg);
+    color: var(--ink);
+    line-height: 1.45;
+  }
+  .site {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 28px 20px 12px;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    align-items: flex-end;
+  }
+  .eyebrow {
+    margin: 0 0 6px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    margin: 0;
+    font-size: 32px;
+    line-height: 1.15;
+    letter-spacing: -.03em;
+    font-weight: 720;
+  }
+  .purpose { margin: 8px 0 0; font-size: 16px; color: var(--muted); max-width: 40rem; }
+  button {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); }
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  button.primary { background: var(--accent); color: #fff; border-color: transparent; }
+  @media (prefers-color-scheme: dark) {
+    button.primary { color: #0e141c; }
+  }
+  #lang { white-space: nowrap; align-self: flex-start; }
+  main { max-width: 980px; margin: 0 auto; padding: 8px 20px 36px; display: grid; gap: 16px; }
+  .banner, .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+  }
+  .banner { padding: 12px 16px; font-size: 13px; color: var(--muted); }
+  .card { padding: 20px 20px 18px; }
+  .card-h { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .step {
+    width: 28px; height: 28px; border-radius: 999px;
+    display: grid; place-items: center;
+    background: var(--accent-soft); color: var(--accent);
+    font-size: 13px; font-weight: 750;
+  }
+  h2 { margin: 0; font-size: 18px; letter-spacing: -.02em; }
+  h3 { margin: 18px 0 8px; font-size: 14px; letter-spacing: .02em; text-transform: uppercase; color: var(--muted); }
+  .note { margin: 0 0 12px; font-size: 13px; color: var(--muted); }
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 14px; }
+  .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  label.f { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 650; }
+  input[type=text], select, textarea {
+    font: inherit;
+    font-size: 15px;
+    font-weight: 450;
+    color: var(--ink);
+    background: var(--input);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    width: 100%;
+  }
+  textarea { min-height: 120px; resize: vertical; font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 12.5px; }
+  .hint { font-size: 12px; color: var(--muted); font-weight: 450; }
+  .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; margin-top: 12px; }
+  label.c { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; font-weight: 500; }
+  label.c input { margin-top: 3px; }
+  .subhead { margin: 18px 0 8px; font-size: 15px; font-weight: 700; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .field-err { border-color: var(--bad) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--bad) 18%, transparent); }
+  .empty-box { text-align: center; padding: 28px 12px; color: var(--muted); }
+  .verdict { border-radius: 14px; padding: 18px 20px; color: #fff; }
+  .verdict .big { font-size: 26px; font-weight: 760; letter-spacing: -.02em; }
+  .verdict .sub { margin-top: 4px; font-size: 14px; opacity: .95; }
+  .v-ok { background: var(--ok); }
+  .v-bad { background: var(--bad); }
+  .v-man { background: var(--man); }
+  @media (prefers-color-scheme: dark) {
+    .v-ok, .v-bad, .v-man { color: #10161c; }
+  }
+  .hits, .docs { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .hits li, .docs li {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: var(--card);
+  }
+  .hits li { border-left: 4px solid var(--muted); }
+  .hits li.err { border-left-color: var(--bad); }
+  .hits li.man { border-left-color: var(--man); }
+  .hits li.warn { border-left-color: var(--accent); }
+  .docs li { border-left: 4px solid var(--accent); display: flex; gap: 10px; align-items: flex-start; }
+  .rule {
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 12px;
+    font-weight: 750;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 6px;
+    padding: 2px 6px;
+    margin-right: 6px;
+  }
+  .sev {
+    font-size: 11px; font-weight: 750; border-radius: 999px;
+    padding: 2px 8px; margin-right: 6px; letter-spacing: .02em;
+  }
+  .sev.hata { background: color-mix(in srgb, var(--bad) 16%, var(--card)); color: var(--bad); }
+  .sev.manuel { background: color-mix(in srgb, var(--man) 18%, var(--card)); color: var(--man); }
+  .sev.uyari { background: var(--accent-soft); color: var(--accent); }
+  .src { display: block; margin-top: 6px; font-size: 12px; color: var(--muted); font-weight: 450; }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 10px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+  th { background: var(--accent-soft); font-size: 12px; letter-spacing: .03em; text-transform: uppercase; color: var(--muted); }
+  tr:last-child td { border-bottom: 0; }
+  .pill {
+    display: inline-block; border-radius: 999px; padding: 3px 8px;
+    font-size: 12px; font-weight: 750; color: #fff;
+  }
+  @media (prefers-color-scheme: dark) {
+    .pill { color: #10161c; }
+  }
+  footer.site-foot {
+    max-width: 980px; margin: 0 auto 40px; padding: 8px 20px 0;
+    color: var(--muted); font-size: 13px;
+  }
+  footer.site-foot .decision { color: var(--ink); font-weight: 700; font-size: 14px; margin: 0 0 6px; }
+  footer.site-foot a { color: var(--accent); }
+  footer.site-foot p { margin: 0 0 8px; }
+  @media (max-width: 800px) {
+    h1 { font-size: 26px; }
+    .site { flex-direction: column; align-items: flex-start; padding-top: 20px; }
+    .grid, .grid.two, .checks { grid-template-columns: 1fr; }
+    .card { padding: 16px; }
+    .verdict .big { font-size: 22px; }
+  }
 </style>
 </head>
 <body>
-<header>
-  <div class="top">
-    <div>
-      <h1 data-i18n="title">FATCA / CRS Müşteri Kontrolü</h1>
-      <p data-i18n="lead">Ön kontroldür, hukuki karar değildir. Veriler bu sayfadan dışarı gitmez.</p>
-    </div>
-    <button type="button" id="lang">English</button>
+<header class="site">
+  <div>
+    <p class="eyebrow">FATCA · CRS</p>
+    <h1 data-i18n="title">FATCA / CRS Kontrol</h1>
+    <p class="purpose" data-i18n="lead">Öz beyan makul mü; değilse hangi belge istenir.</p>
   </div>
+  <button type="button" id="lang">English</button>
 </header>
 <main>
   <aside class="banner" id="listBanner" data-i18n="banner">Ülke listesi 2023 GİB yedeğidir. Raporlamadan önce kurumunuzun güncel listesine bakın.</aside>
 
   <section class="card">
-    <h2 data-i18n="s1">1. Müşteri</h2>
+    <div class="card-h"><span class="step">1</span><h2 data-i18n="s1">Kişi bilgileri</h2></div>
     <div class="grid">
       <label class="f"><span data-i18n="name">Ad soyad</span>
-        <input type="text" id="fullName" data-ph="namePh" placeholder="Ayşe Örnek"></label>
+        <input type="text" id="fullName" placeholder="Ayşe Örnek"></label>
       <label class="f"><span data-i18n="type">Hesap türü</span>
         <select id="accountHolderType">
           <option value="individual" data-i18n="ind">Gerçek kişi</option>
@@ -80,45 +234,40 @@
       <label class="f"><span data-i18n="decl">Beyan tarihi</span>
         <input type="text" id="declarationDate" placeholder="2024-03-15"></label>
       <label class="f"><span data-i18n="cit">Vatandaşlık</span>
-        <input type="text" id="citizenship" data-ph="isoPh" placeholder="TR veya TR; DE"></label>
+        <input type="text" id="citizenship" placeholder="TR veya TR; DE"></label>
       <label class="f"><span data-i18n="birth">Doğum ülkesi</span>
         <input type="text" id="birthCountry" placeholder="TR"></label>
     </div>
-    <label class="c"><input type="checkbox" id="signed"> <span data-i18n="signed">Beyan imzalı veya onaylı</span></label>
+    <div class="checks">
+      <label class="c"><input type="checkbox" id="signed"> <span data-i18n="signed">Beyan imzalı veya onaylı</span></label>
+    </div>
   </section>
 
   <section class="card">
-    <h2 data-i18n="s2">2. Vergi mukimliği ve TIN</h2>
+    <div class="card-h"><span class="step">2</span><h2 data-i18n="s2">Vergi mukimliği</h2></div>
     <p class="note" data-i18n="s2note">En fazla üç ülke. TIN yoksa A, B veya C seçin. B için alttaki açıklama zorunludur.</p>
-    <div class="slot">
-      <div class="grid">
-        <label class="f"><span data-i18n="c1">Ülke 1</span><input type="text" id="res1" placeholder="TR"></label>
-        <label class="f"><span data-i18n="t1">TIN 1</span><input type="text" id="tin1" placeholder="10000001136">
-          <span class="hint" id="tinHint" data-i18n="tinHint">Ülke yazılınca biçim burada görünür.</span></label>
-        <label class="f"><span data-i18n="r1">Neden 1</span><select id="reason1"><option value="">—</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></label>
-      </div>
+    <div class="grid">
+      <label class="f"><span data-i18n="c1">Ülke 1</span><input type="text" id="res1" placeholder="TR"></label>
+      <label class="f"><span data-i18n="t1">TIN 1</span><input type="text" id="tin1" placeholder="10000001136">
+        <span class="hint" id="tinHint" data-i18n="tinHint">Ülke yazılınca biçim burada görünür.</span></label>
+      <label class="f"><span data-i18n="r1">Neden 1</span>
+        <select id="reason1"><option value="">—</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></label>
+      <label class="f"><span data-i18n="c2">Ülke 2</span><input type="text" id="res2"></label>
+      <label class="f"><span data-i18n="t2">TIN 2</span><input type="text" id="tin2"></label>
+      <label class="f"><span data-i18n="r2">Neden 2</span>
+        <select id="reason2"><option value="">—</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></label>
+      <label class="f"><span data-i18n="c3">Ülke 3</span><input type="text" id="res3"></label>
+      <label class="f"><span data-i18n="t3">TIN 3</span><input type="text" id="tin3"></label>
+      <label class="f"><span data-i18n="r3">Neden 3</span>
+        <select id="reason3"><option value="">—</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></label>
     </div>
-    <div class="slot">
-      <div class="grid">
-        <label class="f"><span data-i18n="c2">Ülke 2</span><input type="text" id="res2" placeholder=""></label>
-        <label class="f"><span data-i18n="t2">TIN 2</span><input type="text" id="tin2"></label>
-        <label class="f"><span data-i18n="r2">Neden 2</span><select id="reason2"><option value="">—</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></label>
-      </div>
-    </div>
-    <div class="slot">
-      <div class="grid">
-        <label class="f"><span data-i18n="c3">Ülke 3</span><input type="text" id="res3"></label>
-        <label class="f"><span data-i18n="t3">TIN 3</span><input type="text" id="tin3"></label>
-        <label class="f"><span data-i18n="r3">Neden 3</span><select id="reason3"><option value="">—</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></label>
-      </div>
-    </div>
-    <label class="f" style="margin-top:10px"><span data-i18n="whyB">Neden B ise açıklama</span>
+    <label class="f" style="margin-top:12px"><span data-i18n="whyB">Neden B ise açıklama</span>
       <input type="text" id="noTinExplanation"></label>
-    <p class="note" data-i18n="abc">A: ülke TIN vermiyor. B: müşteri TIN alamadı. C: ülkenin hukuku TIN istemiyor.</p>
+    <p class="note" style="margin-top:8px" data-i18n="abc">A: ülke TIN vermiyor. B: müşteri TIN alamadı. C: ülkenin hukuku TIN istemiyor.</p>
   </section>
 
   <section class="card">
-    <h2 data-i18n="s3">3. Adres, KYC ve telefon</h2>
+    <div class="card-h"><span class="step">3</span><h2 data-i18n="s3">Hesap bilgileri</h2></div>
     <div class="grid">
       <label class="f"><span data-i18n="addr">İkamet adresi ülkesi</span><input type="text" id="addressCountry" placeholder="TR"></label>
       <label class="f"><span data-i18n="mail">Posta adresi ülkesi</span><input type="text" id="mailCountry" placeholder="TR"></label>
@@ -126,39 +275,38 @@
       <label class="f"><span data-i18n="p1">Telefon 1</span><input type="text" id="phone1" placeholder="+90 500 000 00 01"></label>
       <label class="f"><span data-i18n="p2">Telefon 2</span><input type="text" id="phone2"></label>
       <label class="f"><span data-i18n="p3">Telefon 3</span><input type="text" id="phone3"></label>
+      <label class="f"><span data-i18n="bal">Yıl sonu bakiye</span><input type="text" id="balanceAmount" placeholder="250000"></label>
+      <label class="f"><span data-i18n="cur">Para birimi</span><input type="text" id="balanceCurrency" placeholder="USD"></label>
+      <label class="f"><span data-i18n="open">Hesap açılış tarihi</span><input type="text" id="openingDate" placeholder="2010-01-01"></label>
     </div>
-    <label class="c"><input type="checkbox" id="holdMailSole"> <span data-i18n="hold">Kayıtlı tek adres care-of veya hold mail</span></label>
-  </section>
-
-  <section class="card">
-    <h2 data-i18n="s4">4. ABD bağlantısı ve dosya</h2>
+    <p class="note" style="margin-top:10px" data-i18n="s5note">Bakiye ve açılış tarihi boş kalabilir. Bakiye tek hesabın yıl sonu değeridir. Dolar dışındaki tutarda kur hesabı sizdedir.</p>
+    <div class="checks">
+      <label class="c"><input type="checkbox" id="holdMailSole"> <span data-i18n="hold">Kayıtlı tek adres care-of veya hold mail</span></label>
+      <label class="c"><input type="checkbox" id="highValue"> <span data-i18n="hv">Yüksek değerli hesap</span></label>
+    </div>
+    <p class="subhead" data-i18n="s4">ABD bağlantısı</p>
     <div class="grid">
       <label class="f"><span data-i18n="poa">Vekil adres ülkesi</span><input type="text" id="poaCountry" placeholder="US"></label>
     </div>
-    <label class="c"><input type="checkbox" id="standingUs"> <span data-i18n="stand">ABD hesabına düzenli ödeme talimatı var</span></label>
-    <label class="c"><input type="checkbox" id="nonUsCert"> <span data-i18n="w8">Dosyada ABD kişisi olmadığına dair öz beyan (W-8BEN) var</span></label>
-    <label class="c"><input type="checkbox" id="nonUsEvidence"> <span data-i18n="pass">Dosyada ABD dışı statü belgesi (pasaport vb.) var</span></label>
-    <label class="c"><input type="checkbox" id="usPersonDeclared"> <span data-i18n="usp">Müşteri kendini ABD kişisi olarak beyan etti</span></label>
-    <label class="c"><input type="checkbox" id="usGreenCard"> <span data-i18n="gc">Yeşil kart var</span></label>
-    <label class="c"><input type="checkbox" id="usDays183"> <span data-i18n="d183">Bu yıl ABD'de 183 gün veya daha fazla</span></label>
-    <label class="c"><input type="checkbox" id="highValue"> <span data-i18n="hv">Yüksek değerli hesap</span></label>
-    <label class="c"><input type="checkbox" id="rmKnowsReportable"> <span data-i18n="rm">İlişki yöneticisi, müşterinin raporlanabilir kişi olduğunu biliyor</span></label>
+    <div class="checks">
+      <label class="c"><input type="checkbox" id="standingUs"> <span data-i18n="stand">ABD hesabına düzenli ödeme talimatı var</span></label>
+      <label class="c"><input type="checkbox" id="nonUsCert"> <span data-i18n="w8">Dosyada ABD kişisi olmadığına dair öz beyan (W-8BEN) var</span></label>
+      <label class="c"><input type="checkbox" id="nonUsEvidence"> <span data-i18n="pass">Dosyada ABD dışı statü belgesi (pasaport vb.) var</span></label>
+      <label class="c"><input type="checkbox" id="usPersonDeclared"> <span data-i18n="usp">Müşteri kendini ABD kişisi olarak beyan etti</span></label>
+      <label class="c"><input type="checkbox" id="usGreenCard"> <span data-i18n="gc">Yeşil kart var</span></label>
+      <label class="c"><input type="checkbox" id="usDays183"> <span data-i18n="d183">Bu yıl ABD'de 183 gün veya daha fazla</span></label>
+      <label class="c"><input type="checkbox" id="rmKnowsReportable"> <span data-i18n="rm">İlişki yöneticisi, müşterinin raporlanabilir kişi olduğunu biliyor</span></label>
+    </div>
   </section>
 
   <section class="card">
-    <h2 data-i18n="s5">5. İsteğe bağlı: bakiye, açılış, önceki beyan</h2>
-    <p class="note" data-i18n="s5note">Boş bırakılırsa bu üçü kontrol edilmez. Bakiye tek hesabın yıl sonu değeridir. Dolar dışındaki tutarda kur hesabı sizdedir.</p>
+    <div class="card-h"><span class="step">4</span><h2 data-i18n="s5">Önceki beyan</h2></div>
+    <p class="note" data-i18n="priorNote">Dosyada daha eski bir öz beyan varsa. Boşsa bu bölüm atlanır.</p>
     <div class="grid">
-      <label class="f"><span data-i18n="bal">Yıl sonu bakiye</span>
-        <input type="text" id="balanceAmount" placeholder="250000"></label>
-      <label class="f"><span data-i18n="cur">Para birimi</span>
-        <input type="text" id="balanceCurrency" placeholder="USD"></label>
-      <label class="f"><span data-i18n="open">Hesap açılış tarihi</span>
-        <input type="text" id="openingDate" placeholder="2010-01-01"></label>
       <label class="f"><span data-i18n="priorDate">Önceki öz beyan tarihi</span>
-        <input type="text" id="priorCertDate" placeholder="2012-06-01"></label>
+        <input type="text" id="priorCertDate" placeholder="2016-05-01"></label>
       <label class="f"><span data-i18n="priorRes">Önceki beyandaki mukimlik ülkeleri</span>
-        <input type="text" id="priorResidences" placeholder="TR veya TR; DE"></label>
+        <input type="text" id="priorResidences" placeholder="TR veya DE"></label>
       <label class="f"><span data-i18n="priorUs">Önceki beyanda ABD kişisi</span>
         <select id="priorUsPerson">
           <option value="" data-i18n="priorEmpty">Sorulmadı</option>
@@ -169,7 +317,7 @@
   </section>
 
   <section class="card">
-    <div class="row" style="margin-top:0">
+    <div class="actions">
       <button type="button" class="primary" id="run" data-i18n="run">Kontrol et</button>
       <button type="button" id="sample" data-i18n="sample">Örnek doldur</button>
       <button type="button" id="clear" data-i18n="clear">Temizle</button>
@@ -181,20 +329,22 @@
   </section>
 
   <section class="card">
-    <h2 data-i18n="batch">Toplu kontrol</h2>
+    <div class="card-h"><span class="step">5</span><h2 data-i18n="batch">Toplu kontrol</h2></div>
     <p class="note" data-i18n="batchNote">Yalnızca örnek veri yapıştırın. Gerçek müşteri dosyasını bu kutuya koymayın. Sonuç CSV'si noktalı virgül kullanır.</p>
     <textarea id="batchCsv" rows="5" spellcheck="false"></textarea>
-    <div class="row">
+    <div class="actions" style="margin-top:12px">
       <button type="button" class="primary" id="runBatch" data-i18n="runBatch">Toplu kontrol et</button>
       <button type="button" id="loadSample" data-i18n="loadSample">Örnek CSV</button>
       <button type="button" id="saveBatch" data-i18n="saveBatch">Sonuç CSV indir</button>
     </div>
-    <div id="batchOut"></div>
+    <div id="batchOut" style="margin-top:14px"></div>
   </section>
 </main>
-<footer>
-  <p data-i18n="foot1"><strong>Sınır.</strong> Araç belgeyi görmez ve TIN'in kişiye ait olduğunu doğrulamaz. Tüzel müşteri için ayrı öz beyan gerekir.</p>
-  <p data-i18n="foot2"><strong>Kaynak.</strong> Ayrıntılı kural tablosu docs/kapsam.md dosyasındadır. Ülke listesi 2023 yedeğidir.</p>
+<footer class="site-foot">
+  <p class="decision" data-i18n="decision">Bu bir karar destek aracıdır.</p>
+  <p><a href="https://github.com/berkehanbudak1-byte/fatca-crs-kontrol">github.com/berkehanbudak1-byte/fatca-crs-kontrol</a></p>
+  <p data-i18n="foot1">Araç belgeyi görmez ve TIN'in kişiye ait olduğunu doğrulamaz. Tüzel müşteri için ayrı öz beyan gerekir.</p>
+  <p data-i18n="foot2">Ayrıntılı kural tablosu docs/kapsam.md dosyasındadır. Ülke listesi 2023 yedeğidir.</p>
 </footer>
 
 <script src="lib/tin-rules.js"></script>
@@ -205,22 +355,22 @@ var last = null;
 var lastBatch = null;
 var I18N = {
   tr: {
-    title: "FATCA / CRS Müşteri Kontrolü",
-    lead: "Ön kontroldür, hukuki karar değildir. Veriler bu sayfadan dışarı gitmez.",
+    title: "FATCA / CRS Kontrol",
+    lead: "Öz beyan makul mü; değilse hangi belge istenir.",
     banner: "Ülke listesi 2023 GİB yedeğidir. Raporlamadan önce kurumunuzun güncel listesine bakın.",
-    s1: "1. Müşteri", name: "Ad soyad", type: "Hesap türü", ind: "Gerçek kişi", ent: "Tüzel kişi",
+    s1: "Kişi bilgileri", name: "Ad soyad", type: "Hesap türü", ind: "Gerçek kişi", ent: "Tüzel kişi",
     dob: "Doğum tarihi", decl: "Beyan tarihi", cit: "Vatandaşlık", birth: "Doğum ülkesi",
     signed: "Beyan imzalı veya onaylı",
-    s2: "2. Vergi mukimliği ve TIN",
+    s2: "Vergi mukimliği",
     s2note: "En fazla üç ülke. TIN yoksa A, B veya C seçin. B için alttaki açıklama zorunludur.",
     c1: "Ülke 1", t1: "TIN 1", r1: "Neden 1", c2: "Ülke 2", t2: "TIN 2", r2: "Neden 2",
     c3: "Ülke 3", t3: "TIN 3", r3: "Neden 3", whyB: "Neden B ise açıklama",
     abc: "A: ülke TIN vermiyor. B: müşteri TIN alamadı. C: ülkenin hukuku TIN istemiyor.",
     tinHint: "Ülke yazılınca biçim burada görünür.",
-    s3: "3. Adres, KYC ve telefon", addr: "İkamet adresi ülkesi", mail: "Posta adresi ülkesi",
+    s3: "Hesap bilgileri", addr: "İkamet adresi ülkesi", mail: "Posta adresi ülkesi",
     kyc: "KYC belge ülkesi", p1: "Telefon 1", p2: "Telefon 2", p3: "Telefon 3",
     hold: "Kayıtlı tek adres care-of veya hold mail",
-    s4: "4. ABD bağlantısı ve dosya", poa: "Vekil adres ülkesi",
+    s4: "ABD bağlantısı", poa: "Vekil adres ülkesi",
     stand: "ABD hesabına düzenli ödeme talimatı var",
     w8: "Dosyada ABD kişisi olmadığına dair öz beyan (W-8BEN) var",
     pass: "Dosyada ABD dışı statü belgesi (pasaport vb.) var",
@@ -228,8 +378,9 @@ var I18N = {
     gc: "Yeşil kart var", d183: "Bu yıl ABD'de 183 gün veya daha fazla",
     hv: "Yüksek değerli hesap",
     rm: "İlişki yöneticisi, müşterinin raporlanabilir kişi olduğunu biliyor",
-    s5: "5. İsteğe bağlı: bakiye, açılış, önceki beyan",
-    s5note: "Boş bırakılırsa bu üçü kontrol edilmez. Bakiye tek hesabın yıl sonu değeridir. Dolar dışındaki tutarda kur hesabı sizdedir.",
+    s5: "Önceki beyan",
+    priorNote: "Dosyada daha eski bir öz beyan varsa. Boşsa bu bölüm atlanır.",
+    s5note: "Bakiye ve açılış tarihi boş kalabilir. Bakiye tek hesabın yıl sonu değeridir. Dolar dışındaki tutarda kur hesabı sizdedir.",
     bal: "Yıl sonu bakiye", cur: "Para birimi", open: "Hesap açılış tarihi",
     priorDate: "Önceki öz beyan tarihi", priorRes: "Önceki beyandaki mukimlik ülkeleri",
     priorUs: "Önceki beyanda ABD kişisi", priorEmpty: "Sorulmadı", priorYes: "Evet", priorNo: "Hayır",
@@ -242,29 +393,30 @@ var I18N = {
     noneFind: "Bulgu yok.",
     score: "En yüksek önem", points: "puan",
     limit: "Ne bakıldı: öz beyan alanları, TIN biçimi, ABD göstergeleri. Ne bakılmadı: belgenin aslı, TIN'in kişiye ait olması. Karar uyum yöneticisinindir.",
-    foot1: "Sınır. Araç belgeyi görmez ve TIN'in kişiye ait olduğunu doğrulamaz. Tüzel müşteri için ayrı öz beyan gerekir.",
-    foot2: "Kaynak. Ayrıntılı kural tablosu docs/kapsam.md dosyasındadır. Ülke listesi 2023 yedeğidir.",
+    decision: "Bu bir karar destek aracıdır.",
+    foot1: "Araç belgeyi görmez ve TIN'in kişiye ait olduğunu doğrulamaz. Tüzel müşteri için ayrı öz beyan gerekir.",
+    foot2: "Ayrıntılı kural tablosu docs/kapsam.md dosyasındadır. Ülke listesi 2023 yedeğidir.",
     batchEmpty: "İşlenecek satır yok.",
     colNo: "Satır", colName: "Ad", colVerdict: "Karar", colRules: "Kurallar",
     src: "Kaynak"
   },
   en: {
-    title: "FATCA / CRS customer check",
-    lead: "A pre-check, not a legal decision. Data does not leave this page.",
+    title: "FATCA / CRS Check",
+    lead: "Is the self-certification reasonable, and if not, which document to request.",
     banner: "The country list is the 2023 GİB fallback. Check your institution's current list before reporting.",
-    s1: "1. Customer", name: "Full name", type: "Account type", ind: "Individual", ent: "Entity",
+    s1: "Person", name: "Full name", type: "Account type", ind: "Individual", ent: "Entity",
     dob: "Date of birth", decl: "Declaration date", cit: "Citizenship", birth: "Country of birth",
     signed: "Declaration is signed or affirmed",
-    s2: "2. Tax residence and TIN",
+    s2: "Tax residence",
     s2note: "Up to three countries. If there is no TIN, choose A, B or C. B needs the explanation below.",
     c1: "Country 1", t1: "TIN 1", r1: "Reason 1", c2: "Country 2", t2: "TIN 2", r2: "Reason 2",
     c3: "Country 3", t3: "TIN 3", r3: "Reason 3", whyB: "Explanation if reason B",
     abc: "A: the country does not issue TINs. B: the customer could not obtain a TIN. C: domestic law does not require a TIN.",
     tinHint: "The format appears here after you enter a country.",
-    s3: "3. Address, KYC and phone", addr: "Residence address country", mail: "Mailing address country",
+    s3: "Account", addr: "Residence address country", mail: "Mailing address country",
     kyc: "KYC document country", p1: "Phone 1", p2: "Phone 2", p3: "Phone 3",
     hold: "The only address on file is care-of or hold mail",
-    s4: "4. US links and file", poa: "Attorney address country",
+    s4: "US links", poa: "Attorney address country",
     stand: "Standing instruction to pay a US account",
     w8: "File contains a non-US self-certification (W-8BEN)",
     pass: "File contains evidence of non-US status (passport or similar)",
@@ -272,8 +424,9 @@ var I18N = {
     gc: "Green card", d183: "183 days or more in the US this year",
     hv: "High-value account",
     rm: "The relationship manager knows the customer is a reportable person",
-    s5: "5. Optional: balance, opening date, prior certification",
-    s5note: "Leave these blank and they are not checked. The balance is one account at year end. You convert amounts that are not in dollars.",
+    s5: "Prior certification",
+    priorNote: "Only if an older self-certification is already on file. Leave blank to skip.",
+    s5note: "Balance and opening date can be left blank. The balance is one account at year end. You convert amounts that are not in dollars.",
     bal: "Year-end balance", cur: "Currency", open: "Account opening date",
     priorDate: "Prior self-certification date", priorRes: "Tax residences on the prior certification",
     priorUs: "US person on the prior certification", priorEmpty: "Not asked", priorYes: "Yes", priorNo: "No",
@@ -286,8 +439,9 @@ var I18N = {
     noneFind: "No findings.",
     score: "Highest severity", points: "score",
     limit: "Checked: self-certification fields, TIN format, US indicia. Not checked: the original document, whether the TIN belongs to the person. The compliance officer decides.",
-    foot1: "Limit. The tool does not see the document and does not prove the TIN belongs to the person. An entity needs its own self-certification.",
-    foot2: "Source. The rule table is in docs/kapsam.md. The country list is the 2023 fallback.",
+    decision: "This is a decision-support tool.",
+    foot1: "The tool does not see the document and does not prove the TIN belongs to the person. An entity needs its own self-certification.",
+    foot2: "The rule table is in docs/kapsam.md. The country list is the 2023 fallback.",
     batchEmpty: "No rows to process.",
     colNo: "Row", colName: "Name", colVerdict: "Verdict", colRules: "Rules",
     src: "Source"
@@ -299,6 +453,7 @@ function $(id) { return document.getElementById(id); }
 
 function applyLang() {
   document.documentElement.lang = LANG === "en" ? "en" : "tr";
+  document.title = t("title");
   document.querySelectorAll("[data-i18n]").forEach(function (el) {
     var key = el.getAttribute("data-i18n");
     if (I18N[LANG][key]) el.textContent = I18N[LANG][key];
@@ -334,15 +489,17 @@ function todayStr() {
 
 function sampleForm() {
   return {
-    fullName: "Ayşe Örnek", accountHolderType: "individual", dateOfBirth: "1990-05-14",
+    fullName: "Örnek Kişi", accountHolderType: "individual", dateOfBirth: "1984-03-11",
     declarationDate: todayStr(), signed: true, citizenship: "TR", birthCountry: "TR",
     res1: "TR", tin1: "10000001136", reason1: "", res2: "", tin2: "", reason2: "",
     res3: "", tin3: "", reason3: "", noTinExplanation: "",
     addressCountry: "TR", mailCountry: "TR", kycCountry: "TR",
-    phone1: "+90 500 000 00 01", phone2: "", phone3: "", holdMailSole: false,
+    phone1: "+90 500 000 00 21", phone2: "", phone3: "", holdMailSole: false,
     poaCountry: "", standingUs: false, nonUsCert: false, nonUsEvidence: false,
     usPersonDeclared: false, usGreenCard: false, usDays183: false,
-    highValue: false, rmKnowsReportable: false
+    highValue: false, rmKnowsReportable: false,
+    balanceAmount: "2500000", balanceCurrency: "USD", openingDate: "2010-01-01",
+    priorCertDate: "2016-05-01", priorResidences: "DE", priorUsPerson: "H"
   };
 }
 
@@ -407,17 +564,18 @@ function render(out) {
     box.appendChild(empty);
   } else {
     var ul = document.createElement("ul");
+    ul.className = "hits";
     findings.forEach(function (f) {
       var li = document.createElement("li");
       li.className = f.cls === "hata" ? "err" : f.cls === "manuel" ? "man" : "warn";
       var id = document.createElement("span");
       id.className = "rule";
       id.textContent = f.id;
-      var sev = document.createElement("span");
-      sev.className = "sev " + f.cls;
-      sev.textContent = LANG === "en" ? f.severityEn : f.severity;
+      var sevEl = document.createElement("span");
+      sevEl.className = "sev " + f.cls;
+      sevEl.textContent = LANG === "en" ? f.severityEn : f.severity;
       li.appendChild(id);
-      li.appendChild(sev);
+      li.appendChild(sevEl);
       li.appendChild(document.createTextNode(msgOf(f)));
       var src = document.createElement("span");
       src.className = "src";
@@ -439,6 +597,7 @@ function render(out) {
     box.appendChild(nd);
   } else {
     var uld = document.createElement("ul");
+    uld.className = "docs";
     docs.forEach(function (d) {
       var li = document.createElement("li");
       var id = document.createElement("span");
@@ -452,6 +611,7 @@ function render(out) {
   }
   var lim = document.createElement("p");
   lim.className = "note";
+  lim.style.marginTop = "14px";
   lim.textContent = t("limit");
   box.appendChild(lim);
 }
@@ -513,6 +673,8 @@ function renderBatch(summary) {
   var c = summary.counts || {};
   note.textContent = summary.total + " · Makul " + (c.ok || 0) + " · Manuel " + (c.man || 0) + " · Makul değil " + (c.bad || 0);
   box.appendChild(note);
+  var wrap = document.createElement("div");
+  wrap.className = "table-wrap";
   var table = document.createElement("table");
   var hr = document.createElement("tr");
   [t("colNo"), t("colName"), t("colVerdict"), t("colRules")].forEach(function (h) {
@@ -526,15 +688,27 @@ function renderBatch(summary) {
   var tb = document.createElement("tbody");
   summary.results.forEach(function (r) {
     var tr = document.createElement("tr");
-    [r.rowIndex, r.fullName, (LANG === "en" ? r.verdict.labelEn : r.verdict.label), r.ruleIds.join(", ")].forEach(function (val) {
-      var td = document.createElement("td");
-      td.textContent = val;
-      tr.appendChild(td);
-    });
+    var tdNo = document.createElement("td");
+    tdNo.textContent = r.rowIndex;
+    var tdName = document.createElement("td");
+    tdName.textContent = r.fullName;
+    var tdV = document.createElement("td");
+    var pill = document.createElement("span");
+    var code = r.verdict && r.verdict.code;
+    pill.className = "pill " + (code === "bad" ? "v-bad" : code === "man" ? "v-man" : "v-ok");
+    pill.textContent = LANG === "en" ? r.verdict.labelEn : r.verdict.label;
+    tdV.appendChild(pill);
+    var tdRules = document.createElement("td");
+    tdRules.textContent = r.ruleIds.join(", ");
+    tr.appendChild(tdNo);
+    tr.appendChild(tdName);
+    tr.appendChild(tdV);
+    tr.appendChild(tdRules);
     tb.appendChild(tr);
   });
   table.appendChild(tb);
-  box.appendChild(table);
+  wrap.appendChild(table);
+  box.appendChild(wrap);
 }
 
 function downloadCsv(content, filename) {

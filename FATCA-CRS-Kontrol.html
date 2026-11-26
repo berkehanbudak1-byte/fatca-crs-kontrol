@@ -196,6 +196,7 @@ function vo() { return false; }
 // ===== FATCA (IRS 26 CFR 1.1471-4) — F1–F9 =====
 const US_TIN_SSN = /^\d{3}-\d{2}-\d{4}$/;
 const US_TIN_ITIN = /^9\d{2}-(5\d|6[0-5]|7\d|8[0-8]|9[0-2]|9[4-9])-\d{4}$/;
+const US_TIN_EIN = /^\d{2}-\d{7}$/;
 const isUsPhone = (n) => typeof n === "string" && /^\+?1[\s-]?\(?\d{3}\)?/.test(n.trim());
 
 function indicia(form) {
@@ -245,7 +246,10 @@ function validateFatca(form) {
   add(manual, "F9", "Yeni hesap açılış ve idame bilgilerinin gözden geçirilmesi manuel yapılmalı.");
   if (form.residenceCountry === "US" && typeof form.tin === "string" && form.tin.trim()) {
     const t = form.tin.trim();
-    if (!US_TIN_SSN.test(t) && !US_TIN_ITIN.test(t)) add(errors, "F1", "ABD TIN'i SSN (XXX-XX-XXXX) ya da ITIN biçiminde olmalı.");
+    const isEntity = form.accountHolderType === "entity";
+    if (!US_TIN_SSN.test(t) && !US_TIN_ITIN.test(t) && !(isEntity && US_TIN_EIN.test(t))) {
+      add(errors, "F1", "ABD TIN'i SSN (XXX-XX-XXXX) ya da ITIN biçiminde olmalı.");
+    }
   }
   return { valid: errors.length === 0, errors, warnings, manual };
 }
@@ -320,8 +324,17 @@ const isIso2 = (c) => typeof c === "string" && ISO2.test(c);
 
 function parseDate(v) {
   if (typeof v !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return null;
-  const d = new Date(v + "T00:00:00Z");
-  return Number.isNaN(d.getTime()) ? null : d;
+  const [y, m, day] = v.split("-").map(Number);
+  const d = new Date(Date.UTC(y, m - 1, day));
+  if (
+    Number.isNaN(d.getTime()) ||
+    d.getUTCFullYear() !== y ||
+    d.getUTCMonth() !== m - 1 ||
+    d.getUTCDate() !== day
+  ) {
+    return null;
+  }
+  return d;
 }
 const yearsBetween = (a, b) => (b - a) / (365.25 * 24 * 3600 * 1000);
 
@@ -338,7 +351,7 @@ function activePartnerList() {
 function validateCrs(form, options = {}) {
   const errors = [], warnings = [], manual = [];
   const add = (list, rule, msg) => list.push({ rule, msg });
-  const today = options.today ? new Date(options.today) : new Date();
+  const today = options.today ? (parseDate(options.today) || new Date(options.today)) : new Date();
 
   // OECD FAQ 1: tek isimli (mononym) kişi geçerlidir; ad "NFN", soyad bu isim olarak raporlanır
   const nameParts = String(form.fullName || "").trim().split(/\s+/).filter(Boolean);
@@ -867,6 +880,8 @@ const EN_TEXT = {
   "Form verileri yalnızca bu tarayıcı oturumunda işlenir; sunucuya gönderilmez.": "Form data is processed only in this browser session and is not sent to a server.",
   "Bu araç bir ön kontroldür, hukuki, vergi ya da uyum kararı / tavsiyesi değildir. Sonuçlar bir uzmanın değerlendirmesinin yerine geçmez.": "This tool is a pre-check, not legal, tax or compliance advice. Results do not replace a professional's assessment.",
   "Yerleşik yedek GİB Yayın 485 (2023) Ek 2'den gelir ve yenilenmelidir. Güncel liste için GİB bildirim yapılan ülke listesini veya OECD Automatic Exchange Portal'da Türkiye değişim ilişkilerini kontrol edin. Kolay güncelleme: data/crs-partners.json.": "The embedded fallback comes from GİB Publication 485 (2023) Annex 2 and needs refresh. For the current list, check the GİB reportable-jurisdiction list or Türkiye exchange relationships on the OECD Automatic Exchange Portal. Easy update: data/crs-partners.json.",
+  "Yerleşik yedek GİB Yayın 485 (2023) Ek 2'den gelir ve yenilenmelidir. Güncel liste için GİB bildirim yapılan ülke listesini veya OECD Automatic Exchange Portal'da Türkiye değişim ilişkilerini kontrol edin. Kolay güncelleme:": "The embedded fallback comes from GİB Publication 485 (2023) Annex 2 and needs refresh. For the current list, check the GİB reportable-jurisdiction list or Türkiye exchange relationships on the OECD Automatic Exchange Portal. Easy update:",
+  "Ülke TIN kuralları:": "Country TIN rules:",
   "Bu genel sürümde üçüncü taraf ülke TIN format tablosu yoktur; TIN'ler elle doğrulanır. Kurum içi kurallar eklenebilir.": "This public build has no third-party country TIN format table; TINs are verified manually. Institution-specific rules can be added."
 };
 // ===== English rule messages and documents (display only; engine logic is unchanged) =====
@@ -881,6 +896,7 @@ const EN_MSG = {
   "Yeni hesap açılış ve idame bilgilerinin gözden geçirilmesi manuel yapılmalı.": "Account opening and maintenance information must be reviewed manually.",
   "ABD TIN'i SSN (XXX-XX-XXXX) ya da ITIN biçiminde olmalı.": "US TIN must be in SSN (XXX-XX-XXXX) or ITIN format.",
   "Ad soyad eksik.": "Name is missing.",
+  "Tek isimli (mononym) müşteri: ad NFN, soyad bu isim olarak raporlanır. Kimlik belgesiyle doğrulayın.": "Single-name (mononym) customer: first name is reported as NFN and surname as this name. Verify with an identity document.",
   "İlişki yöneticisi müşterinin raporlanabilir kişi olduğunu biliyor; beyan güvenilir kabul edilemez (reason to know).": "The relationship manager knows the customer is a reportable person; the declaration cannot be relied on (reason to know).",
   "Yüksek değerli hesap: ilişki yöneticisi incelemesi ve insan onayı gerekli.": "High-value account: relationship manager review and human approval are required.",
   "İlişki yöneticisinin değerlendirme notu ve yüksek değerli hesap incelemesi kaydı": "Relationship manager assessment note and high-value account review record",
@@ -928,6 +944,7 @@ const EN_MSG = {
   "Vekil ya da imza yetkilisinin non-US adres belgesi": "Non-US address document for the attorney or signatory",
   "Care-of adres yerine kalıcı ikametgâh kanıtı": "Proof of permanent residence instead of a care-of address",
   "Cure ya da recalcitrant adımları için uzman kararı": "Expert decision on cure or recalcitrant steps",
+  "Hesap açılış ve idame gözden geçirme kayıtları": "Account opening and maintenance review records",
   "Kontrol eden kişilerin kimlik ve rol bilgileri ile kayıtları": "Identity and role details, and records, of the controlling persons",
   "CBI/RBI ek due diligence: müşteri görüşmesi kaydı ve yanıtlar, ikametgâh/vatandaşlık ve vergi beyanı belgeleri": "CBI/RBI additional due diligence: interview record and answers, residence/citizenship and tax return documents",
   "OECD AEOI TIN sayfası ile neden kodu A'nın doğrulama kaydı": "Record of checking reason code A against the OECD AEOI TIN page",
@@ -953,7 +970,7 @@ const EN_PATTERNS = [
   [/^(.+?) için TIN formatı bu araçta tanımlı değil, elle kontrol edilmeli\.$/s, (m) => "No TIN format rule in this tool for " + m[1] + "; check manually."],
   [/^CBI\/RBI yüksek riskli ülke \((.*?)\): .*$/s, (m) => "High-risk CBI/RBI country (" + m[1] + "): additional due diligence required. Ask: did the customer obtain residence rights through CBI/RBI? Do they hold residence rights elsewhere? Did they spend more than 90 days elsewhere last year? In which countries did they file personal income tax returns last year?"],
   [/^CRS göstergesi \(c\): TR dışında telefon \((.*?)\) var.*$/s, (m) => "CRS indicium (c): non-Turkish phone (" + m[1] + ") present, no Turkish phone, and this country is not among the declared residences. Close with documents or a new declaration."],
-  [/^Raporlanabilir ülke kontrolü: (.*?) (.+?) yok\..*$/s, (m) => "Reportable jurisdiction check: " + m[1] + " is not on the " + m[2] + ". Verify the exchange agreement and the current list manually."],
+  [/^Raporlanabilir ülke kontrolü: (.*?) (.+?) yok\..*$/s, (m) => "Reportable jurisdiction check: " + m[1] + " is not on the " + m[2].replace("GİB 2023 listesinde (doğrulanmadı)", "GİB 2023 list (unverified)").replace("yüklenen listede", "loaded list").replace("güncel yüklenen listede", "current loaded list").replace("tarihsiz", "undated").replace("yenileme gerekli", "refresh needed") + ". Verify the exchange agreement and the current list manually."],
   [/^CRS göstergesi \(b\): güncel adres TR dışında \((.*?)\)\..*$/s, (m) => "CRS indicium (b): current address outside Turkey (" + m[1] + "). Close with documents or a declaration explaining the residence."]
 ];
 function enIndicia(text) {
@@ -1041,7 +1058,7 @@ async function loadPartnerList() {
 
 loadPartnerList();
 
-$("lang").addEventListener("click", () => { LANG = LANG === "tr" ? "en" : "tr"; applyLang(LANG); if (document.querySelector("#results .verdict")) run(); applyLang(LANG); });
+$("lang").addEventListener("click", () => { LANG = LANG === "tr" ? "en" : "tr"; updateListBanner(); applyLang(LANG); if (document.querySelector("#results .verdict")) run(); applyLang(LANG); });
 ["run", "sample", "clear"].forEach((id) => $(id).addEventListener("click", () => setTimeout(() => applyLang(LANG), 0)));
 </script>
 <footer>

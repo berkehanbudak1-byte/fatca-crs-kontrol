@@ -579,18 +579,76 @@ function isBlankForm(v) {
   return !anyText && !anyFlag && !reason;
 }
 
+const REMEDIATION_META = {
+  F1: { action: "ABD kişi statüsünü (W-9 ve SSN/ITIN/EIN) veya yabancı statüsünü (W-8BEN/W-8BEN-E ve kimlik/mukimlik kanıtı) netleştirin.", forms: ["IRS Form W-9", "IRS Form W-8BEN / W-8BEN-E"] },
+  F2: { action: "ABD doğum yeri göstergesi için CLN (DS-4083) veya yazılı vatandaşlık açıklaması ile ABD dışı pasaport temin edin.", forms: ["IRS Form W-8BEN", "CLN / DS-4083"] },
+  F3: { action: "ABD ikamet/posta adresi göstergesini hesap kayıtlarıyla doğrulayın ve ABD dışı mukimlik kanıtı alın.", forms: ["IRS Form W-8BEN / W-8BEN-E"] },
+  F4: { action: "+1 ülke kodlu telefon numarasının ait olduğu ülkeyi teyit edin; W-8BEN ve ABD dışı resmi kimlik ile cure edin.", forms: ["IRS Form W-8BEN"] },
+  F5: { action: "ABD hesabına sabit ödeme talimatı için öz beyan ve belgesel kanıt ile cure işlemini tamamlayın.", forms: ["IRS Form W-8BEN"] },
+  F6: { action: "ABD adresli vekil/imza yetkilisini doğrulayın ve hesap sahibinin ABD kişisi olmadığını belgeleyin.", forms: ["IRS Form W-8BEN"] },
+  F7: { action: "Tek adres olarak kullanılan Care-of adres yerine kalıcı fiziksel ikametgâh kanıtı temin edin.", forms: ["Adres Teyit ve Öz Beyan Formu"] },
+  F8: { action: "ABD göstergeleri için 90 günlük cure takibini başlatın; tamamlanmazsa recalcitrant statüsünü değerlendirin.", forms: ["IRS Form W-8BEN / W-9"] },
+  C1: { action: "Eksiksiz doldurulmuş, tarihli ve imzalı CRS Öz Beyan (Self-Certification) formu temin edin.", forms: ["CRS Self-Certification Form"] },
+  C2: { action: "Açılış (KYC/AML) ülke bilgisini tamamlayıp makululuk testini yeniden çalıştırın.", forms: ["KYC Müşteri Tanıma Formu"] },
+  C3: { action: "KYC ülkesi ile beyan edilen vergi ikametgâhı çelişkisini yeni öz beyan veya mukimlik belgesiyle giderin.", forms: ["CRS Self-Certification Form", "Vergi Mukimlik Belgesi"] },
+  C4: { action: "Test başarısızlığı nedeniyle yeni geçerli beyan veya belgeli makul açıklama alın.", forms: ["Yenilenmiş CRS Self-Certification Form"] },
+  C5: { action: "Vergi ikametgâh listesi ile adres uyumsuzluğunu resmi ikamet kanıtı veya yazılı açıklamayla kapatın.", forms: ["CRS Self-Certification Form"] },
+  C6: { action: "TIN formatını doğrulayın veya geçerli TIN yokluk neden kodunu (A/B/C) ve B açıklamasını kaydedin.", forms: ["CRS TIN Beyan Eki"] },
+  C7: { action: "İmzasız beyan için geçici prosedür onayını ve ıslak/elektronik imzayı tamamlayın.", forms: ["İmzalı CRS Self-Certification Form"] }
+};
+
+function buildRemediationPlan(results) {
+  if (!results || typeof results !== "object") return [];
+  const all = Object.values(results).filter(Boolean);
+  const buckets = [
+    { items: all.flatMap((r) => r.errors || []), severity: "ERROR", priority: "IMMEDIATE", deadlineDays: 30 },
+    { items: all.flatMap((r) => r.manual || []), severity: "MANUAL", priority: "HIGH", deadlineDays: 60 },
+    { items: all.flatMap((r) => r.warnings || []), severity: "WARNING", priority: "STANDARD", deadlineDays: 90 }
+  ];
+  const byRule = new Map();
+  for (const b of buckets) {
+    for (const it of b.items) {
+      if (!it || !it.rule || CHECKLIST_ONLY.includes(it.rule)) continue;
+      const rule = it.rule;
+      const meta = REMEDIATION_META[rule] || {
+        action: DOCS[rule] || `${rule} kuralı kapsamında uyum incelemesi ve belge doğrulaması yapın.`,
+        forms: ["CRS / FATCA Öz Beyan Formu"]
+      };
+      const docKey = b.severity === "MANUAL" && rule === "C6" ? "C6M" : rule;
+      const evidence = DOCS[docKey] || DOCS[rule] || "Destekleyici resmi kimlik ve mukimlik belgesi";
+      if (!byRule.has(rule)) {
+        byRule.set(rule, {
+          rule,
+          severity: b.severity,
+          priority: b.priority,
+          deadlineDays: b.deadlineDays,
+          action: meta.action,
+          requiredForms: meta.forms,
+          evidence,
+          triggers: [it.msg]
+        });
+      } else {
+        const ex = byRule.get(rule);
+        if (!ex.triggers.includes(it.msg)) ex.triggers.push(it.msg);
+      }
+    }
+  }
+  const order = { IMMEDIATE: 1, HIGH: 2, STANDARD: 3 };
+  return Array.from(byRule.values()).sort((a, b) => (order[a.priority] - order[b.priority]) || a.rule.localeCompare(b.rule));
+}
+
 function check(v, today) {
   if (isBlankForm(v)) {
     const empty = { valid: false, errors: [{ rule: "C1", msg: "Form boş. En az müşteri bilgileri, vergi ikametgâhı ve adres alanlarını doldurun." }], warnings: [], manual: [] };
     const results = { fatca: { valid: true, errors: [], warnings: [], manual: [] }, crs: empty };
-    return { results, verdict: verdict(results), docs: requiredDocs(results), blank: true };
+    return { results, verdict: verdict(results), docs: requiredDocs(results), remediationPlan: buildRemediationPlan(results), blank: true };
   }
   const form = buildForm(v);
   const results = {
     fatca: validateFatca(form),
     crs: validateCrs(form, { today })
   };
-  return { results, verdict: verdict(results), docs: requiredDocs(results), blank: false };
+  return { results, verdict: verdict(results), docs: requiredDocs(results), remediationPlan: buildRemediationPlan(results), blank: false };
 }
 
 const PRESETS = {
@@ -638,6 +696,7 @@ function exportAuditReport(v, today, format = "json") {
     },
     verdict: out.verdict,
     requiredDocs: out.docs,
+    remediationPlan: out.remediationPlan,
     results: out.results
   };
   if (format === "csv") {
@@ -652,12 +711,13 @@ function exportAuditReport(v, today, format = "json") {
       for (const m of (res.manual || [])) rows.push([sec, m.rule, "MANUAL", m.msg]);
     }
     for (const d of (out.docs || [])) rows.push(["DOCUMENT", d.rule, "REQUIRED_DOC", d.doc]);
+    for (const p of (out.remediationPlan || [])) rows.push(["REMEDIATION", p.rule, `${p.priority} (${p.deadlineDays}d)`, `${p.action} | Forms: ${p.requiredForms.join("; ")}`]);
     return rows.map((r) => r.map(esc).join(",")).join("\n");
   }
   return JSON.stringify(report, null, 2);
 }
 
-var ENGINE = { check, buildForm, verdict, requiredDocs, validateFatca, validateCrs, tinCountryCheck, activePartnerList, COUNTRY_TABLE, DOCS, PRESETS, exportAuditReport, getPartnerMeta: () => PARTNER_META };
+var ENGINE = { check, buildForm, verdict, requiredDocs, buildRemediationPlan, validateFatca, validateCrs, tinCountryCheck, activePartnerList, COUNTRY_TABLE, DOCS, PRESETS, exportAuditReport, getPartnerMeta: () => PARTNER_META };
 </script>
 
 <script>
@@ -736,6 +796,22 @@ function render(out) {
       ul.appendChild(li);
     }
     box.appendChild(ul);
+  }
+
+  const plan = out.remediationPlan || [];
+  box.appendChild(el("h3", null, "Uyum Aksiyon Planı (Remediation Checklist)"));
+  if (plan.length === 0) {
+    box.appendChild(el("p", "empty", "Acil uyum aksiyonu gerektiren bir bulgu yok."));
+  } else {
+    const ulPlan = el("ul");
+    for (const p of plan) {
+      const cls = p.priority === "IMMEDIATE" ? "err" : p.priority === "HIGH" ? "man" : "warn";
+      const li = el("li", cls);
+      li.appendChild(el("span", "rule", `${p.rule} · ${p.priority} (${p.deadlineDays}g)`));
+      li.appendChild(document.createTextNode(`${p.action} [Form: ${p.requiredForms.join(", ")}]`));
+      ulPlan.appendChild(li);
+    }
+    box.appendChild(ulPlan);
   }
 
   const det = document.createElement("details");

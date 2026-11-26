@@ -61,6 +61,18 @@
     header h1 { font-size:18px; }
     .verdict .big { font-size:22px; }
   }
+  textarea.batch-input { width:100%; font-family:Consolas, monospace; font-size:12px; padding:10px; border:1px solid var(--line); border-radius:8px; resize:vertical; margin-top:8px; background:#fff; color:var(--ink); }
+  .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(135px, 1fr)); gap:10px; margin:12px 0; }
+  .kpi-box { border:1px solid var(--line); border-radius:8px; padding:10px; background:#fafbfc; text-align:center; }
+  .kpi-box .num { font-size:20px; font-weight:800; color:var(--ink); }
+  .kpi-box .lbl { font-size:11px; color:var(--muted); margin-top:2px; }
+  .kpi-box.ok .num { color:var(--ok); }
+  .kpi-box.bad .num { color:var(--err); }
+  .kpi-box.man .num { color:var(--warn); }
+  .batch-table-wrap { overflow-x:auto; margin-top:10px; }
+  table.batch-table { width:100%; border-collapse:collapse; font-size:12px; }
+  table.batch-table th, table.batch-table td { border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
+  table.batch-table th { background:#f0f3f8; font-weight:700; }
 </style>
 </head>
 <body>
@@ -174,6 +186,20 @@
       <button id="exportCsv">CSV Denetim Raporu</button>
       <button id="clear">Temizle</button>
     </div>
+  </section>
+
+  <section class="card">
+    <details id="batchPanel">
+      <summary>Toplu CSV Tarama Paneli (Batch Screening &amp; XML Hazırlık)</summary>
+      <p class="note">Birden fazla müşteri satırını virgül (,) veya noktalı virgül (;) ayracıyla yapıştırın. Desteklenen sütunlar: <code>fullName, accountHolderType, dateOfBirth, declarationDate, signed, residenceCountry, taxResidences, tin, addressCountry, kycCountry, reportingFi, accountNumber, docTypeIndic</code></p>
+      <textarea id="batchCsvInput" class="batch-input" rows="6" placeholder="fullName,accountHolderType,dateOfBirth,declarationDate,signed,residenceCountry,taxResidences,tin,addressCountry,kycCountry,reportingFi,accountNumber,docTypeIndic"></textarea>
+      <div class="row">
+        <button class="primary" id="runBatch">Toplu Tara</button>
+        <button id="sampleBatch">Örnek CSV Yükle</button>
+        <button id="clearBatch">Listeyi Temizle</button>
+      </div>
+      <div id="batchResults"></div>
+    </details>
   </section>
 
   <section class="card" id="results">
@@ -768,7 +794,287 @@ function getTinFormatGuide(countryCode) {
   };
 }
 
-var ENGINE = { check, buildForm, verdict, requiredDocs, buildRemediationPlan, validateFatca, validateCrs, tinCountryCheck, getTinFormatGuide, activePartnerList, COUNTRY_TABLE, DOCS, PRESETS, exportAuditReport, getPartnerMeta: () => PARTNER_META };
+function checkXmlFilingReadiness(record) {
+  const rec = record && typeof record === "object" ? record : null;
+  const missingElements = [];
+  const missingPaths = [];
+  const invalidPaths = [];
+  if (!rec) {
+    const all = ["ReportingFI", "AccountNumber", "ResCountryCode", "TIN", "BirthDate", "DocTypeIndic", "Name", "Address"];
+    return { ready: false, status: "FAIL", missingElements: all, missingPaths: all, invalidPaths: [] };
+  }
+  const holderType = String(rec.accountHolderType || "individual").trim().toLowerCase();
+  const isEntity = holderType === "entity" || holderType === "organisation" || holderType === "organization";
+  const holderTag = isEntity ? "Organisation" : "Individual";
+  const addMiss = (elName, path) => { missingElements.push(elName); missingPaths.push(path); };
+
+  if (!String(rec.reportingFi || rec.reportingFI || rec.ReportingFI || rec.fiName || "").trim()) {
+    addMiss("ReportingFI", "ReportingFI");
+  }
+  if (!String(rec.accountNumber ?? rec.AccountNumber ?? rec.accountNo ?? "").trim()) {
+    addMiss("AccountNumber", "ReportingGroup/AccountReport/AccountNumber");
+  }
+  const resCode = String(rec.resCountryCode || rec.ResCountryCode || rec.residenceCountry || "").trim().toUpperCase();
+  if (!resCode) addMiss("ResCountryCode", `AccountHolder/${holderTag}/ResCountryCode`);
+  else if (!isIso2(resCode)) invalidPaths.push(`AccountHolder/${holderTag}/ResCountryCode`);
+
+  const tinVal = String(rec.tin ?? rec.TIN ?? "").trim();
+  if (!tinVal && rec.countryIssuesTin !== false) {
+    addMiss("TIN", `AccountHolder/${holderTag}/TIN`);
+  }
+
+  const dobStr = String(rec.dateOfBirth || rec.birthDate || rec.BirthDate || "").trim();
+  if (!isEntity) {
+    if (!dobStr) addMiss("BirthDate", "AccountHolder/Individual/BirthInfo/BirthDate");
+    else if (!parseDate(dobStr)) invalidPaths.push("AccountHolder/Individual/BirthInfo/BirthDate");
+  } else if (dobStr && !parseDate(dobStr)) {
+    invalidPaths.push("AccountHolder/Individual/BirthInfo/BirthDate");
+  }
+
+  const docType = String(rec.docTypeIndic || rec.DocTypeIndic || "").trim().toUpperCase();
+  if (!docType) addMiss("DocTypeIndic", "DocSpec/DocTypeIndic");
+  else if (!/^(OECD(0|1|2|3|10|11|12|13)|FATCA(1|2|3|4|11|12|13|14))$/.test(docType)) {
+    invalidPaths.push("DocSpec/DocTypeIndic");
+  }
+
+  if (String(rec.fullName || rec.name || rec.Name || "").trim().length < 2) {
+    addMiss("Name", `AccountHolder/${holderTag}/Name`);
+  }
+  const addrCountry = typeof rec.address === "object" && rec.address
+    ? String(rec.address.country || rec.address.countryCode || "").trim().toUpperCase()
+    : String(rec.addressCountry || "").trim().toUpperCase();
+  if (!addrCountry) addMiss("Address", `AccountHolder/${holderTag}/Address/CountryCode`);
+  else if (!isIso2(addrCountry)) invalidPaths.push(`AccountHolder/${holderTag}/Address/CountryCode`);
+
+  const ready = missingPaths.length === 0 && invalidPaths.length === 0;
+  return { ready, status: ready ? "PASS" : "FAIL", missingElements, missingPaths, invalidPaths };
+}
+
+function detectCsvDelimiter(headerLine) {
+  let inQuotes = false;
+  let commas = 0, semis = 0, tabs = 0;
+  for (let i = 0; i < headerLine.length; i += 1) {
+    const ch = headerLine[i];
+    if (ch === '"') inQuotes = !inQuotes;
+    else if (!inQuotes) {
+      if (ch === ",") commas += 1;
+      else if (ch === ";") semis += 1;
+      else if (ch === "\t") tabs += 1;
+    }
+  }
+  if (tabs > commas && tabs > semis) return "\t";
+  if (semis > commas) return ";";
+  return ",";
+}
+
+function parseCsvRows(csvText) {
+  const clean = String(csvText || "").replace(/^\uFEFF/, "").trim();
+  if (!clean) return [];
+  const firstNl = clean.search(/\r?\n/);
+  const firstLine = firstNl === -1 ? clean : clean.slice(0, firstNl);
+  const delim = detectCsvDelimiter(firstLine);
+
+  const rows = [];
+  let row = [];
+  let cell = "";
+  let inQuotes = false;
+  for (let i = 0; i < clean.length; i += 1) {
+    const ch = clean[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (clean[i + 1] === '"') { cell += '"'; i += 1; }
+        else inQuotes = false;
+      } else {
+        cell += ch;
+      }
+    } else if (ch === '"') {
+      inQuotes = true;
+    } else if (ch === delim) {
+      row.push(cell.trim());
+      cell = "";
+    } else if (ch === "\r" || ch === "\n") {
+      if (ch === "\r" && clean[i + 1] === "\n") i += 1;
+      row.push(cell.trim());
+      if (row.some((c) => c !== "")) rows.push(row);
+      row = [];
+      cell = "";
+    } else {
+      cell += ch;
+    }
+  }
+  row.push(cell.trim());
+  if (row.some((c) => c !== "")) rows.push(row);
+  return rows;
+}
+
+const CSV_HEADER_ALIASES = {
+  fullname: "fullName", name: "fullName", ad: "fullName", adsoyad: "fullName",
+  accountholdertype: "accountHolderType", type: "accountHolderType", hesapturu: "accountHolderType",
+  dateofbirth: "dateOfBirth", dob: "dateOfBirth", birthdate: "dateOfBirth", dogumtarihi: "dateOfBirth",
+  declarationdate: "declarationDate", beyantarihi: "declarationDate",
+  signed: "signed", imzali: "signed", imzatarihvar: "signed",
+  residencecountry: "residenceCountry", rescountrycode: "residenceCountry", ikametgah: "residenceCountry", vergiikametgahulkesi: "residenceCountry",
+  taxresidences: "taxResidences", vergiulkeleri: "taxResidences",
+  tin: "tin",
+  notinreason: "noTinReason", nedenkodu: "noTinReason",
+  notinexplanation: "noTinExplanation",
+  countryissuestin: "countryIssuesTin",
+  tinulkevermiyor: "tinUlkeVermiyor",
+  addresscountry: "addressCountry", adresulkesi: "addressCountry",
+  kyccountry: "kycCountry", kyculkesi: "kycCountry",
+  citizenship: "citizenship", vatandaslik: "citizenship",
+  birthcountry: "birthCountry", dogumulkesi: "birthCountry",
+  phones: "phones", phone: "phones", telefon: "phones", telkodu: "phones",
+  curedocs: "cureDocs",
+  uspersondeclared: "usPersonDeclared", abdkisisi: "usPersonDeclared", abdvatanadasi: "usPersonDeclared",
+  standingus: "standingUs", abdtalimati: "standingUs",
+  uspoa: "usPoa", abdvekaleti: "usPoa",
+  usgreencard: "usGreenCard",
+  usdays183: "usDays183",
+  ispobox: "isPoBox",
+  careof: "careOf",
+  soleaddress: "soleAddress",
+  highvalue: "highValue",
+  rmknowsreportable: "rmKnowsReportable",
+  reportingfi: "reportingFi", finame: "reportingFi",
+  accountnumber: "accountNumber", accountno: "accountNumber", hesapno: "accountNumber",
+  doctypeindic: "docTypeIndic"
+};
+
+function screenCsvBatch(csvText, today) {
+  const refToday = today || (() => {
+    const d = new Date();
+    const p = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  })();
+  const rows = parseCsvRows(csvText);
+  if (rows.length === 0) {
+    return {
+      total: 0, passed: 0, failed: 0, needsManualReview: 0, manualReview: 0,
+      averageRiskScore: 0, xmlReadyCount: 0, xmlNotReadyCount: 0, results: []
+    };
+  }
+
+  const normKey = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const headerKeys = rows[0].map((h) => CSV_HEADER_ALIASES[normKey(h)] || null);
+  const hasHeader = headerKeys.filter(Boolean).length >= 2 || headerKeys.includes("fullName") || headerKeys.includes("tin");
+  const defaultCols = [
+    "fullName", "accountHolderType", "dateOfBirth", "declarationDate", "signed",
+    "residenceCountry", "taxResidences", "tin", "addressCountry", "kycCountry",
+    "reportingFi", "accountNumber", "docTypeIndic"
+  ];
+  const cols = hasHeader ? headerKeys : defaultCols;
+  const dataRows = hasHeader ? rows.slice(1) : rows;
+  const hasTaxResCol = cols.includes("taxResidences");
+  const hasDeclDateCol = cols.includes("declarationDate");
+
+  const toBool = (val, fallback) => {
+    const s = String(val === undefined || val === null ? "" : val).trim().toLowerCase();
+    if (!s) return fallback;
+    if (["true", "1", "yes", "evet", "e", "y", "on"].includes(s)) return true;
+    if (["false", "0", "no", "hayir", "hayır", "h", "n", "off"].includes(s)) return false;
+    return fallback;
+  };
+  const normHolderType = (val) => {
+    const s = String(val || "").trim().toLowerCase();
+    if (["entity", "tuzel", "tüzel", "tüzel kişi", "tuzel kisi", "kurum", "organisation", "organization"].includes(s)) return "entity";
+    return "individual";
+  };
+
+  let passed = 0, failed = 0, needsManualReview = 0, totalScore = 0, xmlReadyCount = 0;
+  const results = dataRows.map((cells, idx) => {
+    const raw = {};
+    cols.forEach((key, cIdx) => {
+      if (key) raw[key] = cells[cIdx] !== undefined ? cells[cIdx] : "";
+    });
+
+    const resCountry = String(raw.residenceCountry || "").trim().toUpperCase();
+    const countryIssuesTin = raw.tinUlkeVermiyor !== undefined
+      ? !toBool(raw.tinUlkeVermiyor, false)
+      : toBool(raw.countryIssuesTin, true);
+
+    const formInput = {
+      fullName: raw.fullName || "",
+      accountHolderType: normHolderType(raw.accountHolderType),
+      dateOfBirth: raw.dateOfBirth || "",
+      declarationDate: raw.declarationDate || (!hasDeclDateCol ? refToday : ""),
+      signed: toBool(raw.signed, false),
+      residenceCountry: resCountry,
+      taxResidences: raw.taxResidences !== undefined ? raw.taxResidences : (!hasTaxResCol && resCountry ? resCountry : ""),
+      tin: raw.tin || "",
+      noTinReason: String(raw.noTinReason || "").trim().toUpperCase(),
+      noTinExplanation: raw.noTinExplanation || "",
+      countryIssuesTin,
+      addressCountry: String(raw.addressCountry || "").trim().toUpperCase(),
+      kycCountry: String(raw.kycCountry || "").trim().toUpperCase(),
+      isPoBox: toBool(raw.isPoBox, false),
+      careOf: toBool(raw.careOf, false),
+      soleAddress: toBool(raw.soleAddress, false),
+      citizenship: String(raw.citizenship || "").trim().toUpperCase(),
+      birthCountry: String(raw.birthCountry || "").trim().toUpperCase(),
+      phones: raw.phones || "",
+      cureDocs: raw.cureDocs || "",
+      usPersonDeclared: toBool(raw.usPersonDeclared, false),
+      standingUs: toBool(raw.standingUs, false),
+      usPoa: toBool(raw.usPoa, false),
+      usGreenCard: toBool(raw.usGreenCard, false),
+      usDays183: toBool(raw.usDays183, false),
+      highValue: toBool(raw.highValue, false),
+      rmKnowsReportable: toBool(raw.rmKnowsReportable, false),
+      reportingFi: raw.reportingFi || "",
+      accountNumber: raw.accountNumber || "",
+      docTypeIndic: raw.docTypeIndic || ""
+    };
+
+    const out = check(formInput, refToday);
+    const errs = [...(out.results.fatca.errors || []), ...(out.results.crs.errors || [])];
+    const warns = [...(out.results.fatca.warnings || []), ...(out.results.crs.warnings || [])];
+    const man = [...(out.results.fatca.manual || []), ...(out.results.crs.manual || [])].filter((m) => !CHECKLIST_ONLY.includes(m.rule));
+    const riskScore = Math.min(100, errs.length * 35 + warns.length * 15 + man.length * 10);
+    totalScore += riskScore;
+
+    let status = "PASS";
+    if (out.verdict.code === "bad") { status = "FAIL"; failed += 1; }
+    else if (out.verdict.code === "man") { status = "REVIEW"; needsManualReview += 1; }
+    else { passed += 1; }
+
+    const xml = checkXmlFilingReadiness(formInput);
+    if (xml.ready) xmlReadyCount += 1;
+
+    return {
+      rowIndex: idx + 1,
+      fullName: formInput.fullName || `#${idx + 1}`,
+      accountNumber: formInput.accountNumber || "",
+      status,
+      verdict: out.verdict,
+      riskScore,
+      xmlReady: xml.ready,
+      missingXmlPaths: xml.missingPaths,
+      invalidXmlPaths: xml.invalidPaths,
+      errorCount: errs.length,
+      warningCount: warns.length,
+      manualCount: man.length,
+      remediationCount: (out.remediationPlan || []).length,
+      out
+    };
+  });
+
+  const total = results.length;
+  const averageRiskScore = total > 0 ? Math.round((totalScore / total) * 100) / 100 : 0;
+  return {
+    total,
+    passed,
+    failed,
+    needsManualReview,
+    manualReview: needsManualReview,
+    averageRiskScore,
+    xmlReadyCount,
+    xmlNotReadyCount: total - xmlReadyCount,
+    results
+  };
+}
+
+var ENGINE = { check, buildForm, verdict, requiredDocs, buildRemediationPlan, validateFatca, validateCrs, tinCountryCheck, getTinFormatGuide, checkXmlFilingReadiness, screenCsvBatch, activePartnerList, COUNTRY_TABLE, DOCS, PRESETS, exportAuditReport, getPartnerMeta: () => PARTNER_META };
 </script>
 
 <script>
@@ -1022,6 +1328,83 @@ function updateTinFormatHint() {
   if (tinNode) tinNode.placeholder = `Örn: ${guide.example}`;
 }
 
+function renderBatchResults(summary) {
+  const box = $("batchResults");
+  if (!box) return;
+  box.innerHTML = "";
+  if (!summary || summary.total === 0) {
+    box.appendChild(el("p", "empty", "Taranacak geçerli CSV satırı bulunamadı."));
+    return;
+  }
+
+  const kpi = el("div", "kpi-grid");
+  const addKpi = (val, lbl, cls) => {
+    const card = el("div", "kpi-box" + (cls ? " " + cls : ""));
+    card.appendChild(el("div", "num", String(val)));
+    card.appendChild(el("div", "lbl", lbl));
+    kpi.appendChild(card);
+  };
+  addKpi(summary.total, "Toplam Kayıt", "");
+  addKpi(summary.passed, "Geçti (Makul)", "ok");
+  addKpi(summary.needsManualReview, "Manuel İnceleme", "man");
+  addKpi(summary.failed, "Kaldı (Makul Değil)", "bad");
+  addKpi(summary.averageRiskScore, "Ort. Risk Skoru", summary.averageRiskScore >= 35 ? "bad" : summary.averageRiskScore > 0 ? "man" : "ok");
+  addKpi(`${summary.xmlReadyCount}/${summary.total}`, "XML Hazır", summary.xmlReadyCount === summary.total ? "ok" : "man");
+  box.appendChild(kpi);
+
+  const wrap = el("div", "batch-table-wrap");
+  const tbl = el("table", "batch-table");
+  const thead = document.createElement("thead");
+  const hRow = document.createElement("tr");
+  ["#", "Ad Soyad", "Hesap No", "Durum", "Risk Skoru", "XML Hazırlık", "Eksik / Bulgular"].forEach((col) => {
+    hRow.appendChild(el("th", null, col));
+  });
+  thead.appendChild(hRow);
+  tbl.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+  for (const r of summary.results) {
+    const tr = document.createElement("tr");
+    tr.appendChild(el("td", null, String(r.rowIndex)));
+    tr.appendChild(el("td", null, r.fullName));
+    tr.appendChild(el("td", null, r.accountNumber || "—"));
+
+    const stTd = document.createElement("td");
+    const stCls = r.status === "PASS" ? "ok" : "bad";
+    const stBadge = el("span", "badge " + stCls, r.status);
+    if (r.status === "REVIEW") stBadge.style.background = "var(--warn)";
+    stTd.appendChild(stBadge);
+    tr.appendChild(stTd);
+
+    tr.appendChild(el("td", null, String(r.riskScore)));
+
+    const xmlTd = document.createElement("td");
+    xmlTd.appendChild(el("span", "badge " + (r.xmlReady ? "ok" : "bad"), r.xmlReady ? "HAZIR" : "EKSIK"));
+    tr.appendChild(xmlTd);
+
+    const detailParts = [];
+    if (r.errorCount > 0) detailParts.push(`Hata: ${r.errorCount}`);
+    if (r.warningCount > 0) detailParts.push(`Uyarı: ${r.warningCount}`);
+    if (r.manualCount > 0) detailParts.push(`Manuel: ${r.manualCount}`);
+    if (!r.xmlReady && r.missingXmlPaths.length > 0) detailParts.push(`XML Eksik: ${r.missingXmlPaths.join(", ")}`);
+    tr.appendChild(el("td", null, detailParts.length > 0 ? detailParts.join(" · ") : "Sorun yok"));
+    tbody.appendChild(tr);
+  }
+  tbl.appendChild(tbody);
+  wrap.appendChild(tbl);
+  box.appendChild(wrap);
+}
+
+function sampleBatchCsv() {
+  const today = localToday();
+  return [
+    "fullName,accountHolderType,dateOfBirth,declarationDate,signed,residenceCountry,taxResidences,tin,addressCountry,kycCountry,reportingFi,accountNumber,docTypeIndic",
+    `Ayşe Örnek,individual,1990-05-14,${today},true,DE,DE,86095742719,DE,DE,Anadolu Bank A.Ş.,TR100001,OECD1`,
+    `Mehmet Demir,individual,1984-09-21,${today},true,TR,TR,12345678901,TR,TR,,TR100002,`,
+    `John Smith,individual,1979-01-15,${today},false,US,US,12345,US,DE,Anadolu Bank A.Ş.,US100003,FATCA1`
+  ].join("\n");
+}
+
 $("residenceCountry").addEventListener("input", updateTinFormatHint);
 $("run").addEventListener("click", run);
 $("sample").addEventListener("click", () => { fillSample(); updateTinFormatHint(); });
@@ -1031,9 +1414,40 @@ $("presetEntity").addEventListener("click", () => { applyPreset("passiveEntity")
 $("exportJson").addEventListener("click", () => handleExport("json"));
 $("exportCsv").addEventListener("click", () => handleExport("csv"));
 $("clear").addEventListener("click", () => { clearForm(); updateTinFormatHint(); });
+$("runBatch").addEventListener("click", () => {
+  const text = ($("batchCsvInput") && $("batchCsvInput").value) || "";
+  renderBatchResults(ENGINE.screenCsvBatch(text, localToday()));
+});
+$("sampleBatch").addEventListener("click", () => {
+  if ($("batchCsvInput")) $("batchCsvInput").value = sampleBatchCsv();
+  renderBatchResults(ENGINE.screenCsvBatch($("batchCsvInput").value, localToday()));
+});
+$("clearBatch").addEventListener("click", () => {
+  if ($("batchCsvInput")) $("batchCsvInput").value = "";
+  if ($("batchResults")) $("batchResults").innerHTML = "";
+});
 
 // ===== English UI. Rule messages (F/C/R details) remain in Turkish in this version. =====
 const EN_TEXT = {
+  "Toplu CSV Tarama Paneli (Batch Screening & XML Hazırlık)": "Batch CSV Screening Panel (Multi-Record & XML Readiness)",
+  "Toplu Tara": "Screen Batch",
+  "Örnek CSV Yükle": "Load Sample CSV",
+  "Listeyi Temizle": "Clear List",
+  "Taranacak geçerli CSV satırı bulunamadı.": "No valid CSV rows found to screen.",
+  "Toplam Kayıt": "Total Records",
+  "Geçti (Makul)": "Passed",
+  "Manuel İnceleme": "Manual Review",
+  "Kaldı (Makul Değil)": "Failed",
+  "Ort. Risk Skoru": "Avg. Risk Score",
+  "XML Hazır": "XML Ready",
+  "Hesap No": "Account No",
+  "Durum": "Status",
+  "Risk Skoru": "Risk Score",
+  "XML Hazırlık": "XML Readiness",
+  "Eksik / Bulgular": "Missing / Findings",
+  "HAZIR": "READY",
+  "EKSIK": "MISSING",
+  "Sorun yok": "No issues",
   "ABD Endiseli Bireysel": "US Indicia Individual",
   "Coklu Vergi Mukimi": "Multi-Tax Resident",
   "Tuzel Pasif NFE": "Entity Passive NFE",
@@ -1315,8 +1729,19 @@ async function loadPartnerList() {
 
 loadPartnerList();
 
-$("lang").addEventListener("click", () => { LANG = LANG === "tr" ? "en" : "tr"; updateListBanner(); applyLang(LANG); if (document.querySelector("#results .verdict")) run(); applyLang(LANG); });
-["run", "sample", "presetUs", "presetMulti", "presetEntity", "clear"].forEach((id) => $(id).addEventListener("click", () => setTimeout(() => applyLang(LANG), 0)));
+$("lang").addEventListener("click", () => {
+  LANG = LANG === "tr" ? "en" : "tr";
+  updateListBanner();
+  applyLang(LANG);
+  if (document.querySelector("#results .verdict")) run();
+  if ($("batchResults") && $("batchResults").children.length > 0 && $("batchCsvInput")) {
+    renderBatchResults(ENGINE.screenCsvBatch($("batchCsvInput").value, localToday()));
+  }
+  applyLang(LANG);
+});
+["run", "sample", "presetUs", "presetMulti", "presetEntity", "clear", "runBatch", "sampleBatch", "clearBatch"].forEach((id) => {
+  if ($(id)) $(id).addEventListener("click", () => setTimeout(() => applyLang(LANG), 0));
+});
 </script>
 <footer>
   <p><strong>Yasal uyarı:</strong> Bu araç bir ön kontroldür, hukuki, vergi ya da uyum kararı / tavsiyesi değildir. Sonuçlar bir uzmanın değerlendirmesinin yerine geçmez.</p>

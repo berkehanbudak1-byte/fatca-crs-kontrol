@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'none'; img-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-fb8SyveTO1y6mhqgw0pvcRmSZwDpn1xfUq/EsRC20Oc=' 'sha256-2bGPPjl1W5Qme86CGb9bZyA6MY+7PxxnYX3XnNz9J2E=' 'sha256-9H13G2yMwSSKWDZjhGUXpvGSkWSW3bgWh3yvUt6G7zE=';" />
 <title>FATCA / CRS Müşteri Kontrolü</title>
 <style>
   :root { --bg:#f4f6f9; --card:#fff; --ink:#1d2433; --muted:#6b7385; --line:#dde2ea;
@@ -53,14 +54,14 @@
     <h2>1. Müşteri bilgileri</h2>
     <div class="grid">
       <label class="f">Ad soyad
-        <input type="text" id="fullName" placeholder="Ayşe Örnek"></label>
+        <input type="text" id="fullName" placeholder="Ayşe Örnek" autocomplete="off"></label>
       <label class="f">Hesap türü
         <select id="accountHolderType">
           <option value="individual">Gerçek kişi</option>
           <option value="entity">Tüzel kişi</option>
         </select></label>
       <label class="f">Doğum tarihi <span class="hint">gerçek kişi için (YYYY-MM-DD)</span>
-        <input type="text" id="dateOfBirth" placeholder="1990-05-14"></label>
+        <input type="text" id="dateOfBirth" placeholder="1990-05-14" autocomplete="off"></label>
       <label class="f">Beyan tarihi <span class="hint">(YYYY-MM-DD)</span>
         <input type="text" id="declarationDate"></label>
     </div>
@@ -74,8 +75,8 @@
         <input type="text" id="residenceCountry" placeholder="TR"></label>
       <label class="f">Tüm vergi ikametgâh ülkeleri <span class="hint">virgülle, örn. TR, DE</span>
         <input type="text" id="taxResidences" placeholder="TR"></label>
-      <label class="f">TIN (vergi numarası)
-        <input type="text" id="tin" placeholder="boş bırakılabilir"></label>
+      <label class="f">TIN (vergi numarası) <span class="hint">çoklu ülkede Ülke:TIN, örn. TR:12345678901, DE:12345673900</span>
+        <input type="text" id="tin" placeholder="boş bırakılabilir veya TR:..., DE:..." autocomplete="off"></label>
       <label class="f">TIN yok ise neden kodu
         <select id="noTinReason">
           <option value="">— seçiniz —</option>
@@ -149,10 +150,47 @@ function vo() { return false; }
 </script>
 
 <script id="engine">
+const _getCountryTable = () => (typeof COUNTRY_TABLE !== "undefined" ? COUNTRY_TABLE : []);
+const _getTinValidator = () => ({
+  $n: typeof $n !== "undefined" ? $n : class { constructor(e = null) { this.value = e; } },
+  vo: typeof vo !== "undefined" ? vo : () => false
+});
+
 // ===== FATCA (IRS 26 CFR 1.1471-4) — F1–F9 =====
 const US_TIN_SSN = /^\d{3}-\d{2}-\d{4}$/;
 const US_TIN_ITIN = /^9\d{2}-(5\d|6[0-5]|7\d|8[0-8]|9[0-2]|9[4-9])-\d{4}$/;
+const US_TIN_EIN = /^\d{2}-\d{7}$/;
 const isUsPhone = (n) => typeof n === "string" && /^\+?1[\s-]?\(?\d{3}\)?/.test(n.trim());
+
+function parseTinEntries(tinRaw, primaryCountry) {
+  const raw = typeof tinRaw === "string" ? tinRaw.trim() : "";
+  if (!raw) return { mode: "empty", map: new Map(), invalidSegments: [], duplicates: [] };
+  const parts = raw.split(/[,;]/).map((s) => s.trim()).filter(Boolean);
+  const hasColon = parts.some((p) => p.includes(":"));
+  if (!hasColon) {
+    if (parts.length > 1) {
+      return { mode: "single-multi-error", map: new Map(), invalidSegments: parts, duplicates: [] };
+    }
+    const map = new Map();
+    if (isIso2(primaryCountry)) map.set(primaryCountry, parts[0]);
+    return { mode: "single", singleTin: parts[0], map, invalidSegments: [], duplicates: [] };
+  }
+  const map = new Map();
+  const invalidSegments = [];
+  const duplicates = [];
+  for (const p of parts) {
+    const m = p.match(/^([A-Za-z]{2})\s*:\s*(.*)$/);
+    if (!m) {
+      invalidSegments.push(p);
+      continue;
+    }
+    const cc = m[1].toUpperCase();
+    const val = m[2].trim();
+    if (map.has(cc)) duplicates.push(cc);
+    map.set(cc, val);
+  }
+  return { mode: "keyed", map, invalidSegments, duplicates };
+}
 
 function indicia(form) {
   const out = [];
@@ -199,30 +237,68 @@ function validateFatca(form) {
     add(manual, "F9", "ABD adresi, sabit talimat ya da vekil bilgisi hesap kayıtlarıyla doğrulanmalı.");
   }
   add(manual, "F9", "Yeni hesap açılış ve idame bilgilerinin gözden geçirilmesi manuel yapılmalı.");
-  if (form.residenceCountry === "US" && typeof form.tin === "string" && form.tin.trim()) {
-    const t = form.tin.trim();
-    if (!US_TIN_SSN.test(t) && !US_TIN_ITIN.test(t)) add(errors, "F1", "ABD TIN'i SSN (XXX-XX-XXXX) ya da ITIN biçiminde olmalı.");
+  const hasUsRes = form.residenceCountry === "US" || (Array.isArray(form.taxResidences) && form.taxResidences.includes("US"));
+  if (hasUsRes && typeof form.tin === "string" && form.tin.trim()) {
+    const parsed = parseTinEntries(form.tin, form.residenceCountry);
+    const usTin = parsed.mode === "keyed"
+      ? (parsed.map.get("US") || "")
+      : (form.residenceCountry === "US" ? (parsed.singleTin || "") : "");
+    const isEntity = form.accountHolderType === "entity";
+    if (usTin && !US_TIN_SSN.test(usTin) && !US_TIN_ITIN.test(usTin) && !(isEntity && US_TIN_EIN.test(usTin))) {
+      add(errors, "F1", "ABD TIN'i SSN (XXX-XX-XXXX) ya da ITIN biçiminde olmalı.");
+    }
   }
   return { valid: errors.length === 0, errors, warnings, manual };
 }
 
 // ===== CRS (OECD) — C1–C7 =====
-// Ülke TIN kontrolü: yukarıdaki tin-rules bloğundaki 142 ülke tablosunu kullanır.
+// Ülke TIN kontrolü: yukarıdaki tin-rules bloğundaki ülke tablosunu kullanır.
 // Tabloda olmayan ülke (ör. TR) için TIN elle kontrol edilir.
 function tinCountryCheck(code, tin) {
-  if (!COUNTRY_TABLE.some((c) => c.code === code)) return null;
-  const info = new $n(), msg = new $n();
-  const ok = vo(tin, code, info, msg);
+  const table = _getCountryTable();
+  if (!table.some((c) => c.code === code)) return null;
+  const { $n: InfoBox, vo: validateFn } = _getTinValidator();
+  const info = new InfoBox(), msg = new InfoBox();
+  const ok = validateFn(tin, code, info, msg);
   return { ok: ok === true, msg: msg.value || `${code} TIN'i format kuralına uymuyor.` };
 }
+
+function validateTin(code, tin) {
+  const cc = isIso2(code) ? code : "";
+  const val = typeof tin === "string" ? tin.trim() : "";
+  if (!val) {
+    return { ok: false, manual: false, msg: cc ? `${cc} için TIN girilmemiş.` : "TIN girilmemiş." };
+  }
+  const rule = cc ? tinCountryCheck(cc, val) : null;
+  if (rule) {
+    return { ok: rule.ok, manual: false, msg: rule.ok ? "" : rule.msg };
+  }
+  if (!/^[A-Za-z0-9-]{4,25}$/.test(val)) {
+    return {
+      ok: false,
+      manual: false,
+      msg: cc
+        ? `${cc} için TIN biçimi geçersiz (4-25 karakter, harf, rakam, tire).`
+        : "TIN biçimi geçersiz (4-25 karakter, harf, rakam, tire)."
+    };
+  }
+  return {
+    ok: true,
+    manual: true,
+    msg: `${cc || "Ülke"} için TIN formatı bu araçta tanımlı değil, elle kontrol edilmeli.`
+  };
+}
+
 const REASON_CODES = new Set(["A", "B", "C"]);
 // BNZ Reasonableness Test Guide: OECD'nin 13 yüksek riskli CBI/RBI ülkesi (ISO-2)
 // Kontrol listesi maddeleri: ekranda gösterilir ama karara ve belge listesine girmez
 const CHECKLIST_ONLY = ["F9", "R4", "R5"];
 // Kurumun (banka) ülkesi: CRS göstergeleri bu ülkeye göre değerlendirilir
 const RFI_COUNTRY = "TR";
-// Türkiye'nin CRS Çok Taraflı Yetkili Makam Anlaşması ortakları (GİB rehberi, Yayın 485, 2023, Ek 2: 120 ülke).
-// Liste zamanla değişir; kullanmadan önce GİB'in güncel rehberiyle karşılaştırılmalı. TR kendi listesinde yer alır.
+// Türkiye'nin CRS Çok Taraflı Yetkili Makam Anlaşması ortakları
+// Sürüm: 2023 GİB listesi — güncel liste için OECD AEOI Portalını kontrol edin (GİB rehberi, Yayın 485, 2023, Ek 2: 120 ülke).
+// Liste zamanla değişir; kullanmadan önce güncel listeyle karşılaştırılmalı. TR kendi listesinde yer alır.
+const TR_CRS_PARTNERS_VERSION = "2023 GİB listesi — güncel liste için OECD AEOI Portalını kontrol edin";
 const TR_CRS_PARTNERS = [
   "DE","AD","AI","AG","AR","AL","AW","AU","AT","AZ","BS","BH","BB","BE","BZ","BM","AE","GB","BR","BN","BG","KY","GI","CK","CW","CZ","CN",
   "DK","DM","EC","ID","EE","FO","MA","FI","FR","GH","CY","GD","GL","GG","ZA","GE","HR","IN","NL","HK","VG","IE","ES","IL","SE","CH",
@@ -266,8 +342,11 @@ const isIso2 = (c) => typeof c === "string" && ISO2.test(c);
 
 function parseDate(v) {
   if (typeof v !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return null;
-  const d = new Date(v + "T00:00:00Z");
-  return Number.isNaN(d.getTime()) ? null : d;
+  const [y, m, day] = v.split("-").map(Number);
+  const d = new Date(Date.UTC(y, m - 1, day));
+  if (Number.isNaN(d.getTime())) return null;
+  if (d.getUTCFullYear() !== y || d.getUTCMonth() !== m - 1 || d.getUTCDate() !== day) return null;
+  return d;
 }
 const yearsBetween = (a, b) => (b - a) / (365.25 * 24 * 3600 * 1000);
 
@@ -339,19 +418,59 @@ function validateCrs(form, options = {}) {
         add(errors, "C6", "Neden kodu B için TIN alınamamasının açıklaması zorunlu.");
       }
       // BNZ doğruluk kontrolü: neden kodu A, ülkenin TIN vermediği iddiasıdır; tabloda TIN formatı olan bir ülkede şüphelidir
-      if (form.noTinReason === "A" && isIso2(form.residenceCountry) && COUNTRY_TABLE.some((c) => c.code === form.residenceCountry)) {
+      if (form.noTinReason === "A" && isIso2(form.residenceCountry) && _getCountryTable().some((c) => c.code === form.residenceCountry)) {
         add(manual, "R3", `${form.residenceCountry} için neden kodu A seçildi. OECD AEOI TIN sayfasından ülkenin TIN verip vermediğini kontrol edin.`);
       }
+    } else {
+      add(manual, "R3", `${form.residenceCountry || "Ülke"} için 'ülke TIN vermiyor' işaretlendi. OECD AEOI TIN sayfasından ülkenin TIN verip vermediğini belgeyle doğrulayın.`);
     }
   } else {
     // BNZ tutarlılık: TIN ve neden kodu birlikte girilemez
     if (REASON_CODES.has(form.noTinReason)) add(errors, "C6", "TIN ve neden kodu birlikte girilmiş. Yalnızca biri olmalı (BNZ tutarlılık kontrolü).");
-    const rule = isIso2(form.residenceCountry) ? tinCountryCheck(form.residenceCountry, tin) : null;
-    if (rule) {
-      if (!rule.ok) add(errors, "C6", rule.msg);
-    } else {
-      if (!/^[A-Za-z0-9-]{4,25}$/.test(tin)) add(errors, "C6", "TIN biçimi geçersiz (4-25 karakter, harf, rakam, tire).");
-      add(manual, "C6", `${form.residenceCountry || "Ülke"} için TIN formatı bu araçta tanımlı değil, elle kontrol edilmeli.`);
+    const parsedTin = parseTinEntries(tin, form.residenceCountry);
+    const declaredResidences = Array.isArray(form.taxResidences) && form.taxResidences.length > 0
+      ? [...new Set(form.taxResidences.filter(isIso2))]
+      : (isIso2(form.residenceCountry) ? [form.residenceCountry] : []);
+
+    if (parsedTin.mode === "single-multi-error") {
+      add(errors, "C6", "Birden fazla TIN girildiğinde her değer ÜlkeKodu:TIN biçiminde olmalı (örn. TR:12345678901, DE:12345673900).");
+    } else if (parsedTin.mode === "single") {
+      const primary = isIso2(form.residenceCountry) ? form.residenceCountry : (declaredResidences[0] || "");
+      const res = validateTin(primary, parsedTin.singleTin);
+      if (!res.ok) add(errors, "C6", res.msg);
+      else if (res.manual) add(manual, "C6", res.msg);
+
+      const missingCountries = declaredResidences.filter((cc) => cc !== primary);
+      for (const cc of missingCountries) {
+        add(errors, "C6", `${cc} için TIN girilmemiş (birden fazla vergi ikametgâhı için Ülke:TIN biçiminde tüm ülkelerin TIN'ini girin).`);
+      }
+    } else if (parsedTin.mode === "keyed") {
+      for (const seg of parsedTin.invalidSegments) {
+        add(errors, "C6", `Geçersiz TIN girişi (${seg}): ÜlkeKodu:TIN biçiminde olmalı (örn. TR:12345678901).`);
+      }
+      for (const dup of [...new Set(parsedTin.duplicates)]) {
+        add(errors, "C6", `${dup} için birden fazla TIN girilmiş.`);
+      }
+      const validatedCountries = new Set();
+      for (const cc of declaredResidences) {
+        if (!parsedTin.map.has(cc)) {
+          add(errors, "C6", `${cc} için TIN girilmemiş.`);
+          continue;
+        }
+        const res = validateTin(cc, parsedTin.map.get(cc));
+        validatedCountries.add(cc);
+        if (!res.ok) add(errors, "C6", res.msg);
+        else if (res.manual) add(manual, "C6", res.msg);
+      }
+      for (const [cc, val] of parsedTin.map.entries()) {
+        if (validatedCountries.has(cc)) continue;
+        const res = validateTin(cc, val);
+        if (!res.ok) add(errors, "C6", res.msg);
+        else if (res.manual) add(manual, "C6", res.msg);
+        if (declaredResidences.length > 0 && !declaredResidences.includes(cc)) {
+          add(warnings, "C6", `${cc} için TIN girilmiş ancak vergi ikametgâh listesinde yer almıyor.`);
+        }
+      }
     }
   }
 
@@ -362,7 +481,9 @@ function validateCrs(form, options = {}) {
   // ADGM/BNZ kontrol listesi maddeleri: manuel kontrol, karar ve belge listesine girmez
   add(manual, "R5", "Müşterinin kimlik belgesi (pasaport/kimlik) doğrulandı mı?");
   // CRS göstergesi (c): kurumun ülkesi (TR) dışında telefon var ve TR telefonu yoksa gösterge tetiklenir
-  const phoneList = (form.phones || []).map((p) => String(p).replace(/[\s()-]/g, "")).filter(Boolean);
+  const phoneList = (form.phones || [])
+    .map((p) => String(p).replace(/[\s()-]/g, "").replace(/^00(?=\d)/, "+"))
+    .filter(Boolean);
   const hasTrPhone = phoneList.some((p) => /^(\+90|0090)/.test(p) || /^05\d{9}$/.test(p));
   const foreignPhones = phoneList.filter((p) => p.startsWith("+") && !/^\+90/.test(p));
   if (foreignPhones.length > 0 && !hasTrPhone) {
@@ -378,7 +499,7 @@ function validateCrs(form, options = {}) {
   const foreignRes = (form.taxResidences || []).filter((c) => isIso2(c) && c !== RFI_COUNTRY);
   const notPartner = foreignRes.filter((c) => !TR_CRS_PARTNERS.includes(c));
   if (notPartner.length > 0) {
-    add(manual, "R9", `Raporlanabilir ülke kontrolü: ${notPartner.join(", ")} Türkiye'nin CRS ortak listesinde (GİB 2023) yok. Değişim anlaşması ve güncel liste elle doğrulanmalı.`);
+    add(manual, "R9", `Raporlanabilir ülke kontrolü: ${notPartner.join(", ")} Türkiye'nin CRS ortak listesinde (${TR_CRS_PARTNERS_VERSION}) yok. Değişim anlaşması ve güncel liste elle doğrulanmalı.`);
   }
   // R10: ilişki yöneticisi bilgisi ve yüksek değerli hesap incelemesi
   if (form.rmKnowsReportable === true) add(errors, "R10", "İlişki yöneticisi müşterinin raporlanabilir kişi olduğunu biliyor; beyan güvenilir kabul edilemez (reason to know).");
@@ -410,7 +531,7 @@ const DOCS = {
   C7: "Geçici prosedür kararı ve imzalı beyan",
   R1: "Kontrol eden kişilerin kimlik ve rol bilgileri ile kayıtları",
   R2: "CBI/RBI ek due diligence: müşteri görüşmesi kaydı ve yanıtlar, ikametgâh/vatandaşlık ve vergi beyanı belgeleri",
-  R3: "OECD AEOI TIN sayfası ile neden kodu A'nın doğrulama kaydı",
+  R3: "OECD AEOI TIN sayfası ile ülkenin TIN vermeme durumunun / neden kodu A'nın doğrulama kaydı",
   R6: "Yabancı telefonun ikametgâh ile ilişkisini gösteren belge ya da yeni self-certification (CRS gösterge c)",
   R8: "Yabancı adresin ikametgâh ile ilişkisini gösteren belge ya da self-certification (CRS gösterge b)",
   R9: "Kurumun yerel raporlanabilir ülke listesi ile değişim anlaşmasının doğrulama kaydı (OECD taahhüdü tek başına yeterli değil)",
@@ -459,7 +580,9 @@ function requiredDocs(results) {
 // Ham form değerlerinden kontrol nesnesi üretir
 function buildForm(v) {
   const up = (s) => String(s || "").trim().toUpperCase();
-  const list = (s) => String(s || "").split(/[,;]/).map((x) => x.trim()).filter(Boolean);
+  const list = (s) => Array.isArray(s)
+    ? s.map((x) => String(x || "").trim()).filter(Boolean)
+    : String(s || "").split(/[,;]/).map((x) => x.trim()).filter(Boolean);
   return {
     fullName: v.fullName,
     accountHolderType: v.accountHolderType,
@@ -497,7 +620,39 @@ function check(v, today) {
   return { results, verdict: verdict(results), docs: requiredDocs(results) };
 }
 
-var ENGINE = { check, buildForm, verdict, requiredDocs, validateFatca, validateCrs, tinCountryCheck, COUNTRY_TABLE, DOCS };
+var ENGINE = {
+  check,
+  buildForm,
+  verdict,
+  requiredDocs,
+  validateFatca,
+  validateCrs,
+  validateTin,
+  tinCountryCheck,
+  parseTinEntries,
+  TR_CRS_PARTNERS,
+  TR_CRS_PARTNERS_VERSION,
+  get COUNTRY_TABLE() { return _getCountryTable(); },
+  DOCS
+};
+
+if (typeof module === "object" && module.exports) {
+  module.exports = {
+    check: ENGINE.check,
+    buildForm: ENGINE.buildForm,
+    verdict: ENGINE.verdict,
+    requiredDocs: ENGINE.requiredDocs,
+    validateFatca: ENGINE.validateFatca,
+    validateCrs: ENGINE.validateCrs,
+    validateTin: ENGINE.validateTin,
+    tinCountryCheck: ENGINE.tinCountryCheck,
+    parseTinEntries: ENGINE.parseTinEntries,
+    TR_CRS_PARTNERS: ENGINE.TR_CRS_PARTNERS,
+    TR_CRS_PARTNERS_VERSION: ENGINE.TR_CRS_PARTNERS_VERSION,
+    COUNTRY_TABLE: ENGINE.COUNTRY_TABLE,
+    DOCS: ENGINE.DOCS
+  };
+}
 </script>
 
 <script>
@@ -549,7 +704,7 @@ function listBlock(title, items, cls, emptyText) {
 
 function render(out) {
   const box = $("results");
-  box.innerHTML = "";
+  box.textContent = "";
 
   const vClass = { ok: "v-ok", man: "v-man", bad: "v-bad" }[out.verdict.code];
   const vBox = el("div", "verdict " + vClass);
@@ -586,21 +741,27 @@ function render(out) {
   box.appendChild(det);
 }
 
+// Yerel tarih (YYYY-MM-DD). toISOString() UTC verir; Türkiye'de gece 00:00–03:00 arası bir gün geriden gelir.
+function localToday() {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
 function run() {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localToday();
   const v = readValues();
-  if (!v.declarationDate) v.declarationDate = today;
   render(ENGINE.check(v, today));
 }
 
 const SAMPLE = {
   fullName: "Ayşe Örnek", accountHolderType: "individual", dateOfBirth: "1990-05-14",
-  declarationDate: new Date().toISOString().slice(0, 10), signed: true,
+  declarationDate: localToday(), signed: true,
   residenceCountry: "TR", taxResidences: "TR", tin: "12345678901", noTinReason: "", noTinExplanation: "",
   countryIssuesTin: true, addressCountry: "TR", kycCountry: "TR",
-  isPoBox: false, careOf: false, soleAddress: false,
+  isPoBox: false, careOf: false, soleAddress: false, highValue: false, rmKnowsReportable: false,
   citizenship: "TR", birthCountry: "TR", phones: "+90 532 000 00 00", cureDocs: "",
-  usPersonDeclared: false, standingUs: false, usPoa: false
+  usPersonDeclared: false, standingUs: false, usPoa: false, usGreenCard: false, usDays183: false
 };
 
 function fillSample() {
@@ -617,14 +778,16 @@ function clearForm() {
     else if (el.tagName === "SELECT") el.value = el.options[0].value;
     else el.value = "";
   }
-  $("results").innerHTML = '<p class="empty">Formu doldurup "Kontrol et" düğmesine basın. Sonuç ve istenecek belgeler burada görünecek.</p>';
+  const resBox = $("results");
+  resBox.textContent = "";
+  resBox.appendChild(el("p", "empty", 'Formu doldurup "Kontrol et" düğmesine basın. Sonuç ve istenecek belgeler burada görünecek.'));
 }
 
 $("run").addEventListener("click", run);
 $("sample").addEventListener("click", fillSample);
 $("clear").addEventListener("click", clearForm);
 
-// ===== English UI. Rule messages (F/C/R details) remain in Turkish in this version. =====
+// ===== English UI text. Rule messages and documents are translated via EN_MSG / EN_PATTERNS below. =====
 const EN_TEXT = {
   "FATCA / CRS Müşteri Kontrolü": "FATCA / CRS Customer Check",
   "Ön kontroldür, hukuki karar değildir. Veriler yalnızca bu sayfada işlenir, hiçbir yere gönderilmez.": "A pre-check only, not a legal decision. Data is processed on this page only and is not sent anywhere.",
@@ -644,7 +807,7 @@ const EN_TEXT = {
   "Tüm vergi ikametgâh ülkeleri": "All tax residence countries",
   "virgülle, örn. TR, DE": "comma-separated, e.g. TR, DE",
   "TIN (vergi numarası)": "TIN (tax number)",
-  "boş bırakılabilir": "may be left empty",
+  "çoklu ülkede Ülke:TIN, örn. TR:12345678901, DE:12345673900": "for multiple countries use CC:TIN, e.g. TR:12345678901, DE:12345673900",
   "TIN yok ise neden kodu": "Reason code if no TIN",
   "— seçiniz —": "— select —",
   "A: Ülke TIN vermiyor": "A: Country does not issue TINs",
@@ -696,7 +859,7 @@ const EN_TEXT = {
   "Yasal uyarı:": "Disclaimer:",
   "Bu araç bir ön kontroldür, hukuki, vergi ya da uyum kararı değildir. Sonuçlar bir uzmanın değerlendirmesinin yerine geçmez.": "This tool is a pre-check, not a legal, tax or compliance decision. Results do not replace a professional's assessment.",
   "Ortak ülke listesi:": "Partner country list:",
-  "Türkiye'nin CRS ortakları listesi GİB'in 2023 tarihli rehberinden (Yayın 485, Ek 2) alınmıştır ve güncel değildir. Güncel liste için OECD Automatic Exchange Portal'da Türkiye'yi seçerek kontrol edin.": "Turkey's CRS partner list is taken from the 2023 GİB guide (Publication 485, Annex 2) and is out of date. Check the current list on the OECD Automatic Exchange Portal by selecting Türkiye.",
+  "Türkiye'nin CRS ortakları listesi (2023 GİB listesi — güncel liste için OECD AEOI Portalını kontrol edin; GİB Yayın 485, Ek 2).": "Turkey's CRS partner list (2023 GİB list — check the OECD AEOI Portal for the current list; GİB Publication 485, Annex 2).",
   "İnsan onayı:": "Human review:",
   "Sonuç her zaman bir uzman tarafından onaylanmalıdır. Özellikle yüksek değerli hesaplarda ilişki yöneticisinin durumu da değerlendirilmelidir.": "The result must always be approved by a specialist. For high-value accounts, the relationship manager's situation must also be considered.",
   "Bu sürümde ülke TIN format kuralları yoktur; TIN'ler elle doğrulanır.": "This version has no country TIN format rules; TINs are verified manually."
@@ -737,6 +900,7 @@ const EN_MSG = {
   "Neden kodu B için TIN alınamamasının açıklaması zorunlu.": "An explanation is required for reason code B.",
   "TIN ve neden kodu birlikte girilmiş. Yalnızca biri olmalı (BNZ tutarlılık kontrolü).": "Both a TIN and a reason code were entered. Only one should be filled (BNZ consistency check).",
   "TIN biçimi geçersiz (4-25 karakter, harf, rakam, tire).": "Invalid TIN format (4-25 characters: letters, digits, hyphens).",
+  "Birden fazla TIN girildiğinde her değer ÜlkeKodu:TIN biçiminde olmalı (örn. TR:12345678901, DE:12345673900).": "When entering multiple TINs, each value must be in CC:TIN format (e.g. TR:12345678901, DE:12345673900).",
   "Açılış (KYC) ülkesi ile beyan edilen ikametgâh ülkesi farklı.": "Opening (KYC) country differs from the declared residence country.",
   "Açılış (KYC) ülkesi yok, makululuk testi tamamlanamadı.": "Opening (KYC) country is missing; the reasonableness test could not be completed.",
   "Müşterinin kimlik belgesi (pasaport/kimlik) doğrulandı mı?": "Has the customer's identity document (passport or ID) been verified?",
@@ -762,7 +926,7 @@ const EN_MSG = {
   "Cure ya da recalcitrant adımları için uzman kararı": "Expert decision on cure or recalcitrant steps",
   "Kontrol eden kişilerin kimlik ve rol bilgileri ile kayıtları": "Identity and role details, and records, of the controlling persons",
   "CBI/RBI ek due diligence: müşteri görüşmesi kaydı ve yanıtlar, ikametgâh/vatandaşlık ve vergi beyanı belgeleri": "CBI/RBI additional due diligence: interview record and answers, residence/citizenship and tax return documents",
-  "OECD AEOI TIN sayfası ile neden kodu A'nın doğrulama kaydı": "Record of checking reason code A against the OECD AEOI TIN page",
+  "OECD AEOI TIN sayfası ile ülkenin TIN vermeme durumunun / neden kodu A'nın doğrulama kaydı": "Record of checking reason code A / no-TIN country status against the OECD AEOI TIN page",
   "Yabancı telefonun ikametgâh ile ilişkisini gösteren belge ya da yeni self-certification (CRS gösterge c)": "Document or new self-certification showing the link between the foreign phone and residence (CRS indicium c)",
   "Tek isimli müşterinin kimlik belgesi (ad NFN, soyad olarak raporlama kaydı)": "ID document of the single-name customer (first name NFN, surname as the name; reporting record)",
   "Yabancı adresin ikametgâh ile ilişkisini gösteren belge ya da self-certification (CRS gösterge b)": "Document or self-certification showing the link between the foreign address and residence (CRS indicium b)",
@@ -782,10 +946,16 @@ const EN_PATTERNS = [
   [/^ABD ikametgâhı var ama ABD kişisi beyan edilmemiş: (.*)$/s, (m) => "US residence but no US person declaration: " + enIndicia(m[1])],
   [/^ABD göstergeleri var, ABD kişisi beyan edilmemiş: (.*)$/s, (m) => "US indicia present, no US person declaration: " + enIndicia(m[1])],
   [/^(\S+) için neden kodu A seçildi\. .*$/s, (m) => "Reason code A selected for " + m[1] + ". Check on the OECD AEOI TIN page whether the country issues TINs."],
+  [/^(.+?) için 'ülke TIN vermiyor' işaretlendi\. .*$/s, (m) => "'Country does not issue TINs' is marked for " + m[1] + ". Verify with documentary evidence on the OECD AEOI TIN page whether the country issues TINs."],
   [/^(.+?) için TIN formatı bu araçta tanımlı değil, elle kontrol edilmeli\.$/s, (m) => "No TIN format rule in this tool for " + m[1] + "; check manually."],
+  [/^(.+?) için TIN biçimi geçersiz \(4-25 karakter, harf, rakam, tire\)\.$/s, (m) => "Invalid TIN format for " + m[1] + " (4-25 characters: letters, digits, hyphens)."],
+  [/^(.+?) için TIN girilmemiş.*$/s, (m) => "Missing TIN for " + m[1] + "."],
+  [/^Geçersiz TIN girişi \((.*?)\): .*$/s, (m) => "Invalid TIN entry (" + m[1] + "): must use CC:TIN format (e.g. TR:12345678901)."],
+  [/^(.+?) için birden fazla TIN girilmiş\.$/s, (m) => "Duplicate TIN entered for " + m[1] + "."],
+  [/^(.+?) için TIN girilmiş ancak vergi ikametgâh listesinde yer almıyor\.$/s, (m) => "TIN entered for " + m[1] + " but it is not in the tax residence list."],
   [/^CBI\/RBI yüksek riskli ülke \((.*?)\): .*$/s, (m) => "High-risk CBI/RBI country (" + m[1] + "): additional due diligence required. Ask: did the customer obtain residence rights through CBI/RBI? Do they hold residence rights elsewhere? Did they spend more than 90 days elsewhere last year? In which countries did they file personal income tax returns last year?"],
   [/^CRS göstergesi \(c\): TR dışında telefon \((.*?)\) var.*$/s, (m) => "CRS indicium (c): non-Turkish phone (" + m[1] + ") present, no Turkish phone, and this country is not among the declared residences. Close with documents or a new declaration."],
-  [/^Raporlanabilir ülke kontrolü: (.*?) Türkiye'nin CRS ortak listesinde \(GİB 2023\) yok\..*$/s, (m) => "Reportable jurisdiction check: " + m[1] + " is not on Turkey's CRS partner list (GİB 2023). Verify the exchange agreement and the current list manually."],
+  [/^Raporlanabilir ülke kontrolü: (.*?) Türkiye'nin CRS ortak listesinde \(.*?\) yok\..*$/s, (m) => "Reportable jurisdiction check: " + m[1] + " is not on Turkey's CRS partner list (2023 GİB list). Verify the exchange agreement and the current list manually."],
   [/^CRS göstergesi \(b\): güncel adres TR dışında \((.*?)\)\..*$/s, (m) => "CRS indicium (b): current address outside Turkey (" + m[1] + "). Close with documents or a declaration explaining the residence."]
 ];
 function enIndicia(text) {
@@ -828,7 +998,7 @@ $("lang").addEventListener("click", () => { LANG = LANG === "tr" ? "en" : "tr"; 
 </script>
 <footer style="margin-top:24px;font-size:12px;color:#555;line-height:1.5">
   <p><strong>Yasal uyarı:</strong> Bu araç bir ön kontroldür, hukuki, vergi ya da uyum kararı değildir. Sonuçlar bir uzmanın değerlendirmesinin yerine geçmez.</p>
-  <p><strong>Ortak ülke listesi:</strong> Türkiye'nin CRS ortakları listesi GİB'in 2023 tarihli rehberinden (Yayın 485, Ek 2) alınmıştır ve güncel değildir. Güncel liste için OECD Automatic Exchange Portal'da Türkiye'yi seçerek kontrol edin.</p>
+  <p><strong>Ortak ülke listesi:</strong> Türkiye'nin CRS ortakları listesi (2023 GİB listesi — güncel liste için OECD AEOI Portalını kontrol edin; GİB Yayın 485, Ek 2).</p>
   <p><strong>İnsan onayı:</strong> Sonuç her zaman bir uzman tarafından onaylanmalıdır. Özellikle yüksek değerli hesaplarda ilişki yöneticisinin durumu da değerlendirilmelidir.</p>
   <p><strong>Ülke TIN kuralları:</strong> Bu sürümde ülke TIN format kuralları yoktur; TIN'ler elle doğrulanır.</p>
 </footer>

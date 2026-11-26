@@ -39,16 +39,51 @@
   .note { font-size:12px; color:var(--muted); line-height:1.5; margin-top:10px; }
   details { font-size:14px; margin-top:12px; }
   summary { cursor:pointer; font-weight:600; }
+  .banner { border:1px solid #f0d9a8; background:#fff8eb; color:#7a4e00; border-radius:10px; padding:12px 14px; font-size:13px; line-height:1.55; }
+  .banner strong { color:#5c3b00; }
+  .banner a { color:#7a4e00; }
+  .banner.ok-list { border-color:#b7e0c5; background:#f0faf3; color:#1f5c38; }
+  .banner.ok-list a { color:#1f5c38; }
+  .banner .meta { margin-top:6px; font-size:12px; opacity:.9; }
+  .empty-box { text-align:center; padding:28px 16px; border:1px dashed var(--line); border-radius:10px; background:#fafbfc; }
+  .empty-box .title { font-size:15px; font-weight:700; margin:0 0 6px; color:var(--ink); }
+  .empty-box .desc { margin:0 0 12px; color:var(--muted); font-size:13px; line-height:1.5; }
+  .empty-box ul { display:inline-block; text-align:left; color:var(--muted); font-size:13px; margin:0; }
+  .field-err { border-color:var(--err) !important; background:#fff5f5; }
+  .run-error { border:1px solid #f0b4ad; background:#fff1f0; color:var(--err); border-radius:10px; padding:12px 14px; font-size:13px; margin-bottom:12px; }
+  #results:target, #results.has-result { scroll-margin-top:16px; }
+  footer { max-width:1000px; margin:24px auto; padding:0 16px 32px; font-size:12px; color:#555; line-height:1.5; }
+  footer p { margin:0 0 8px; }
+  header .row { margin-top:10px; gap:8px; }
+  .privacy { display:inline-block; font-size:11px; padding:3px 8px; border-radius:6px; background:rgba(255,255,255,.12); }
+  @media (max-width:600px) {
+    header { padding:14px 16px; }
+    header h1 { font-size:18px; }
+    .verdict .big { font-size:22px; }
+  }
 </style>
 </head>
 <body>
 <header>
   <h1>FATCA / CRS Müşteri Kontrolü</h1>
   <p>Ön kontroldür, hukuki karar değildir. Veriler yalnızca bu sayfada işlenir, hiçbir yere gönderilmez.</p>
-  <button type="button" id="lang" style="margin-top:10px">English</button>
+  <div class="row">
+    <button type="button" id="lang">English</button>
+    <span class="privacy">Çevrimdışı / tarayıcı içi</span>
+  </div>
 </header>
 
 <main>
+  <aside class="banner" id="listBanner" role="status">
+    <strong>Ülke listesi yenilenmeli:</strong>
+    Yerleşik liste GİB Yayın 485 (2023) Ek 2 yedeğidir; güncel olmayabilir.
+    Raporlama için kurumunuzun güncel GİB bildirim listesini veya
+    <a href="https://www.oecd.org/tax/automatic-exchange/international-framework-for-the-crs/exchange-relationships/" target="_blank" rel="noopener">OECD Automatic Exchange Portal</a>
+    üzerinden Türkiye değişim ilişkilerini kontrol edin.
+    Listeyi güncellemek için <code>data/crs-partners.json</code> dosyasını düzenleyin.
+    <div class="meta" id="listMeta">Kaynak: GİB 2023 Ek 2 (yerleşik yedek) · durum: yenileme gerekli</div>
+  </aside>
+
   <section class="card">
     <h2>1. Müşteri bilgileri</h2>
     <div class="grid">
@@ -136,7 +171,16 @@
   </section>
 
   <section class="card" id="results">
-    <p class="empty">Formu doldurup "Kontrol et" düğmesine basın. Sonuç ve istenecek belgeler burada görünecek.</p>
+    <div class="empty-box" id="emptyState">
+      <p class="title">Henüz sonuç yok</p>
+      <p class="desc">Formu doldurup "Kontrol et" düğmesine basın. Sonuç ve istenecek belgeler burada görünecek. Veriler tarayıcı dışına çıkmaz.</p>
+      <ul>
+        <li>Ad soyad, hesap türü, beyan tarihi ve imza</li>
+        <li>Vergi ikametgâhı / TIN (veya neden kodu)</li>
+        <li>Adres ve KYC ülkesi</li>
+        <li>Varsa ABD bağlantıları (FATCA)</li>
+      </ul>
+    </div>
   </section>
 </main>
 
@@ -223,9 +267,16 @@ const CHECKLIST_ONLY = ["F9", "R4", "R5"];
 const RFI_COUNTRY = "TR";
 // R9 için asıl liste: GİB'in internet sitesinde yayımlanan "bildirim yapılan ülke" listesi (Mukimlik Kılavuzu Madde 76(1)).
 // Liste GİB'den alınıp buraya yazılana kadar boş; boşken aşağıdaki 2023 listesi kullanılır.
-const TR_REPORTABLE_LIST = [];
+// Öncelik: 1) data/crs-partners.json (statik sunucuda) 2) TR_REPORTABLE_LIST 3) TR_CRS_PARTNERS (2023 yedek)
+let PARTNER_META = {
+  asOf: "2023-08",
+  needsRefresh: true,
+  source: "GİB Yayın 485 (2023) Ek 2 — yerleşik yedek",
+  loadedFrom: "embedded"
+};
+let TR_REPORTABLE_LIST = [];
 // Yedek: GİB rehberi, Yayın 485, 2023, Ek 2 (120 ülke). Doğrulanmadı; güncel listeyle karşılaştırılmalı. TR kendi listesinde yer alır.
-// "Katılımcı ülke" listesi ise OECD taahhüdüdür ve burada kullanılmaz.
+// "Katılımcı ülke" listesi (OECD katılım taahhüdü) burada kullanılmaz; raporlanabilirlik yerel liste + aktif değişim ister.
 const TR_CRS_PARTNERS = [
   "DE","AD","AI","AG","AR","AL","AW","AU","AT","AZ","BS","BH","BB","BE","BZ","BM","AE","GB","BR","BN","BG","KY","GI","CK","CW","CZ","CN",
   "DK","DM","EC","ID","EE","FO","MA","FI","FR","GH","CY","GD","GL","GG","ZA","GE","HR","IN","NL","HK","VG","IE","ES","IL","SE","CH",
@@ -273,6 +324,16 @@ function parseDate(v) {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 const yearsBetween = (a, b) => (b - a) / (365.25 * 24 * 3600 * 1000);
+
+function activePartnerList() {
+  if (TR_REPORTABLE_LIST.length > 0) {
+    const label = PARTNER_META.needsRefresh
+      ? `yüklenen listede (${PARTNER_META.asOf || "tarihsiz"}, yenileme gerekli)`
+      : `güncel yüklenen listede (${PARTNER_META.asOf || "tarihsiz"})`;
+    return { list: TR_REPORTABLE_LIST, sourceLabel: label };
+  }
+  return { list: TR_CRS_PARTNERS, sourceLabel: "GİB 2023 listesinde (doğrulanmadı)" };
+}
 
 function validateCrs(form, options = {}) {
   const errors = [], warnings = [], manual = [];
@@ -379,8 +440,7 @@ function validateCrs(form, options = {}) {
   // CRS raporlanabilir ülke kontrolü: OECD taahhüdü (katılım) tek başına yeterli değil; kurumun yerel listesinde ve
   // değişim anlaşması olan ülke olmalı. Yabancı ikametgâh varsa manuel kontrol gerekir.
   const foreignRes = (form.taxResidences || []).filter((c) => isIso2(c) && c !== RFI_COUNTRY);
-  const reportableList = TR_REPORTABLE_LIST.length > 0 ? TR_REPORTABLE_LIST : TR_CRS_PARTNERS;
-  const listSource = TR_REPORTABLE_LIST.length > 0 ? "GİB bildirim yapılan ülke listesinde" : "GİB 2023 listesinde (doğrulanmadı)";
+  const { list: reportableList, sourceLabel: listSource } = activePartnerList();
   const notPartner = foreignRes.filter((c) => !reportableList.includes(c));
   if (notPartner.length > 0) {
     add(manual, "R9", `Raporlanabilir ülke kontrolü: ${notPartner.join(", ")} ${listSource} yok. Değişim anlaşması ve güncel liste elle doğrulanmalı.`);
@@ -493,16 +553,29 @@ function buildForm(v) {
   };
 }
 
+function isBlankForm(v) {
+  const textIds = ["fullName","dateOfBirth","declarationDate","residenceCountry","taxResidences","tin","noTinExplanation","addressCountry","kycCountry","citizenship","birthCountry","phones","cureDocs"];
+  const anyText = textIds.some((id) => String(v[id] || "").trim());
+  const anyFlag = !!(v.signed || v.usPersonDeclared || v.standingUs || v.usPoa || v.usGreenCard || v.usDays183 || v.highValue || v.rmKnowsReportable || v.isPoBox || v.careOf || v.soleAddress);
+  const reason = !!v.noTinReason;
+  return !anyText && !anyFlag && !reason;
+}
+
 function check(v, today) {
+  if (isBlankForm(v)) {
+    const empty = { valid: false, errors: [{ rule: "C1", msg: "Form boş. En az müşteri bilgileri, vergi ikametgâhı ve adres alanlarını doldurun." }], warnings: [], manual: [] };
+    const results = { fatca: { valid: true, errors: [], warnings: [], manual: [] }, crs: empty };
+    return { results, verdict: verdict(results), docs: requiredDocs(results), blank: true };
+  }
   const form = buildForm(v);
   const results = {
     fatca: validateFatca(form),
     crs: validateCrs(form, { today })
   };
-  return { results, verdict: verdict(results), docs: requiredDocs(results) };
+  return { results, verdict: verdict(results), docs: requiredDocs(results), blank: false };
 }
 
-var ENGINE = { check, buildForm, verdict, requiredDocs, validateFatca, validateCrs, tinCountryCheck, COUNTRY_TABLE, DOCS };
+var ENGINE = { check, buildForm, verdict, requiredDocs, validateFatca, validateCrs, tinCountryCheck, activePartnerList, COUNTRY_TABLE, DOCS, getPartnerMeta: () => PARTNER_META };
 </script>
 
 <script>
@@ -555,11 +628,18 @@ function listBlock(title, items, cls, emptyText) {
 function render(out) {
   const box = $("results");
   box.innerHTML = "";
+  box.classList.add("has-result");
+  markFieldErrors(out);
+
+  if (out.blank) {
+    const err = el("div", "run-error", trMsg("Form boş görünüyor. Kontrol için gerekli alanları doldurun; aksi halde sonuç güvenilir olmaz."));
+    box.appendChild(err);
+  }
 
   const vClass = { ok: "v-ok", man: "v-man", bad: "v-bad" }[out.verdict.code];
   const vBox = el("div", "verdict " + vClass);
-  vBox.appendChild(el("div", "big", out.verdict.label));
-  vBox.appendChild(el("div", "sub", out.verdict.sub));
+  vBox.appendChild(el("div", "big", trMsg(out.verdict.label)));
+  vBox.appendChild(el("div", "sub", trMsg(out.verdict.sub)));
   box.appendChild(vBox);
 
   box.appendChild(el("h3", null, "İstenecek belgeler ve bilgiler"));
@@ -601,8 +681,12 @@ function localToday() {
 function run() {
   const today = localToday();
   const v = readValues();
-  if (!v.declarationDate) v.declarationDate = today;
-  render(ENGINE.check(v, today));
+  // Boş formda otomatik tarih basma; aksi halde boş form "dolu" görünür.
+  const blank = ENGINE.check({ ...v, declarationDate: v.declarationDate || "" }, today).blank;
+  if (!blank && !v.declarationDate) v.declarationDate = today;
+  const out = ENGINE.check(v, today);
+  render(out);
+  $("results").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 const SAMPLE = {
@@ -629,8 +713,55 @@ function clearForm() {
     else if (el.tagName === "SELECT") el.value = el.options[0].value;
     else el.value = "";
   }
-  $("results").innerHTML = '<p class="empty">Formu doldurup "Kontrol et" düğmesine basın. Sonuç ve istenecek belgeler burada görünecek.</p>';
+  resetResults();
+  clearFieldErrors();
 }
+
+function emptyStateHtml() {
+  return `<div class="empty-box" id="emptyState">
+      <p class="title">Henüz sonuç yok</p>
+      <p class="desc">Formu doldurup "Kontrol et" düğmesine basın. Sonuç ve istenecek belgeler burada görünecek. Veriler tarayıcı dışına çıkmaz.</p>
+      <ul>
+        <li>Ad soyad, hesap türü, beyan tarihi ve imza</li>
+        <li>Vergi ikametgâhı / TIN (veya neden kodu)</li>
+        <li>Adres ve KYC ülkesi</li>
+        <li>Varsa ABD bağlantıları (FATCA)</li>
+      </ul>
+    </div>`;
+}
+
+function resetResults() {
+  const box = $("results");
+  box.classList.remove("has-result");
+  box.innerHTML = emptyStateHtml();
+}
+
+function clearFieldErrors() {
+  document.querySelectorAll(".field-err").forEach((n) => n.classList.remove("field-err"));
+}
+
+function markFieldErrors(out) {
+  clearFieldErrors();
+  const map = {
+    C1: ["fullName","declarationDate","dateOfBirth","residenceCountry","addressCountry","signed"],
+    C3: ["kycCountry","residenceCountry"],
+    C5: ["taxResidences","residenceCountry","addressCountry"],
+    C6: ["tin","noTinReason","noTinExplanation"],
+    F1: ["citizenship","residenceCountry","tin","usPersonDeclared"],
+    R10: ["rmKnowsReportable","highValue"]
+  };
+  const rules = new Set();
+  for (const res of Object.values(out.results || {})) {
+    for (const e of (res.errors || [])) rules.add(e.rule);
+  }
+  for (const rule of rules) {
+    for (const id of (map[rule] || [])) {
+      const node = $(id);
+      if (node) node.classList.add("field-err");
+    }
+  }
+}
+
 
 $("run").addEventListener("click", run);
 $("sample").addEventListener("click", fillSample);
@@ -688,6 +819,9 @@ const EN_TEXT = {
   "Örnek doldur": "Fill sample",
   "Temizle": "Clear",
   "Formu doldurup \"Kontrol et\" düğmesine basın. Sonuç ve istenecek belgeler burada görünecek.": "Fill in the form and press \"Check\". The result and required documents will appear here.",
+  "Formu doldurup \"Kontrol et\" düğmesine basın. Sonuç ve istenecek belgeler burada görünecek. Veriler tarayıcı dışına çıkmaz.": "Fill in the form and press \"Check\". The result and required documents will appear here. Data does not leave the browser.",
+  "Yerleşik liste GİB Yayın 485 (2023) Ek 2 yedeğidir; güncel olmayabilir. Raporlama için kurumunuzun güncel GİB bildirim listesini kontrol edin veya": "The embedded list is the GİB Publication 485 (2023) Annex 2 fallback and may be out of date. For reporting, check your institution's current GİB reportable list or",
+  "Listeyi güncellemek için data/crs-partners.json dosyasını düzenleyin.": "To update the list, edit data/crs-partners.json.",
   "MANUEL İNCELEME GEREKİYOR": "MANUAL REVIEW REQUIRED",
   "MAKUL DEĞİL": "NOT REASONABLE",
   "MAKUL": "REASONABLE",
@@ -711,7 +845,29 @@ const EN_TEXT = {
   "Türkiye'nin CRS ortakları listesi GİB'in 2023 tarihli rehberinden (Yayın 485, Ek 2) alınmıştır ve güncel değildir. Güncel liste için OECD Automatic Exchange Portal'da Türkiye'yi seçerek kontrol edin.": "Turkey's CRS partner list is taken from the 2023 GİB guide (Publication 485, Annex 2) and is out of date. Check the current list on the OECD Automatic Exchange Portal by selecting Türkiye.",
   "İnsan onayı:": "Human review:",
   "Sonuç her zaman bir uzman tarafından onaylanmalıdır. Özellikle yüksek değerli hesaplarda ilişki yöneticisinin durumu da değerlendirilmelidir.": "The result must always be approved by a specialist. For high-value accounts, the relationship manager's situation must also be considered.",
-  "Bu sürümde ülke TIN format kuralları yoktur; TIN'ler elle doğrulanır.": "This version has no country TIN format rules; TINs are verified manually."
+  "Bu sürümde ülke TIN format kuralları yoktur; TIN'ler elle doğrulanır.": "This version has no country TIN format rules; TINs are verified manually.",
+  "Çevrimdışı / tarayıcı içi": "Offline / in-browser",
+  "Henüz sonuç yok": "No result yet",
+  "Formu doldurup Kontrol et düğmesine basın. Sonuç ve istenecek belgeler burada görünecek. Veriler tarayıcı dışına çıkmaz.": "Fill in the form and press Check. The result and required documents will appear here. Data does not leave the browser.",
+  "Ad soyad, hesap türü, beyan tarihi ve imza": "Full name, account type, declaration date and signature",
+  "Vergi ikametgâhı / TIN (veya neden kodu)": "Tax residence / TIN (or reason code)",
+  "Adres ve KYC ülkesi": "Address and KYC country",
+  "Varsa ABD bağlantıları (FATCA)": "US links if any (FATCA)",
+  "Form boş görünüyor. Kontrol için gerekli alanları doldurun; aksi halde sonuç güvenilir olmaz.": "The form looks empty. Fill the required fields; otherwise the result is not reliable.",
+  "Form boş. En az müşteri bilgileri, vergi ikametgâhı ve adres alanlarını doldurun.": "The form is empty. Fill at least customer details, tax residence and address fields.",
+  "Ülke listesi yenilenmeli:": "Country list needs refresh:",
+  "Yerleşik liste GİB Yayın 485 (2023) Ek 2 yedeğidir; güncel olmayabilir. Raporlama için kurumunuzun güncel GİB bildirim listesini veya OECD Automatic Exchange Portal üzerinden Türkiye değişim ilişkilerini kontrol edin. Listeyi güncellemek için data/crs-partners.json dosyasını düzenleyin.": "The embedded list is the GİB Publication 485 (2023) Annex 2 fallback and may be out of date. For reporting, check your institution's current GİB reportable list or Türkiye exchange relationships on the OECD Automatic Exchange Portal. To update the list, edit data/crs-partners.json.",
+  "Ülke listesi:": "Country list:",
+  "Yüklenen liste güncel olarak işaretlenmiş.": "The loaded list is marked current.",
+  "Kaynak:": "Source:",
+  "tarih:": "as of:",
+  "ülke": "countries",
+  "yükleme:": "loaded from:",
+  "Gizlilik:": "Privacy:",
+  "Form verileri yalnızca bu tarayıcı oturumunda işlenir; sunucuya gönderilmez.": "Form data is processed only in this browser session and is not sent to a server.",
+  "Bu araç bir ön kontroldür, hukuki, vergi ya da uyum kararı / tavsiyesi değildir. Sonuçlar bir uzmanın değerlendirmesinin yerine geçmez.": "This tool is a pre-check, not legal, tax or compliance advice. Results do not replace a professional's assessment.",
+  "Yerleşik yedek GİB Yayın 485 (2023) Ek 2'den gelir ve yenilenmelidir. Güncel liste için GİB bildirim yapılan ülke listesini veya OECD Automatic Exchange Portal'da Türkiye değişim ilişkilerini kontrol edin. Kolay güncelleme: data/crs-partners.json.": "The embedded fallback comes from GİB Publication 485 (2023) Annex 2 and needs refresh. For the current list, check the GİB reportable-jurisdiction list or Türkiye exchange relationships on the OECD Automatic Exchange Portal. Easy update: data/crs-partners.json.",
+  "Bu genel sürümde üçüncü taraf ülke TIN format tablosu yoktur; TIN'ler elle doğrulanır. Kurum içi kurallar eklenebilir.": "This public build has no third-party country TIN format table; TINs are verified manually. Institution-specific rules can be added."
 };
 // ===== English rule messages and documents (display only; engine logic is unchanged) =====
 const EN_MSG = {
@@ -797,7 +953,7 @@ const EN_PATTERNS = [
   [/^(.+?) için TIN formatı bu araçta tanımlı değil, elle kontrol edilmeli\.$/s, (m) => "No TIN format rule in this tool for " + m[1] + "; check manually."],
   [/^CBI\/RBI yüksek riskli ülke \((.*?)\): .*$/s, (m) => "High-risk CBI/RBI country (" + m[1] + "): additional due diligence required. Ask: did the customer obtain residence rights through CBI/RBI? Do they hold residence rights elsewhere? Did they spend more than 90 days elsewhere last year? In which countries did they file personal income tax returns last year?"],
   [/^CRS göstergesi \(c\): TR dışında telefon \((.*?)\) var.*$/s, (m) => "CRS indicium (c): non-Turkish phone (" + m[1] + ") present, no Turkish phone, and this country is not among the declared residences. Close with documents or a new declaration."],
-  [/^Raporlanabilir ülke kontrolü: (.*?) (GİB bildirim yapılan ülke listesinde|GİB 2023 listesinde \(doğrulanmadı\)) yok\..*$/s, (m) => "Reportable jurisdiction check: " + m[1] + " is not on the " + (m[2].includes("doğrulanmadı") ? "GİB 2023 list (unverified)" : "GİB reportable jurisdiction list") + ". Verify the exchange agreement and the current list manually."],
+  [/^Raporlanabilir ülke kontrolü: (.*?) (.+?) yok\..*$/s, (m) => "Reportable jurisdiction check: " + m[1] + " is not on the " + m[2] + ". Verify the exchange agreement and the current list manually."],
   [/^CRS göstergesi \(b\): güncel adres TR dışında \((.*?)\)\..*$/s, (m) => "CRS indicium (b): current address outside Turkey (" + m[1] + "). Close with documents or a declaration explaining the residence."]
 ];
 function enIndicia(text) {
@@ -835,14 +991,65 @@ function applyLang(lang) {
   document.documentElement.lang = lang;
   $("lang").textContent = lang === "en" ? "Türkçe" : "English";
 }
+
+function updateListBanner() {
+  const banner = $("listBanner");
+  if (!banner) return;
+  const count = (TR_REPORTABLE_LIST.length || TR_CRS_PARTNERS.length);
+  const oecd = "https://www.oecd.org/tax/automatic-exchange/international-framework-for-the-crs/exchange-relationships/";
+  if (PARTNER_META.needsRefresh) {
+    banner.classList.remove("ok-list");
+    banner.innerHTML = `<strong></strong> <span></span> <a href="${oecd}" target="_blank" rel="noopener">OECD Automatic Exchange Portal</a>. <span data-k="json"></span><div class="meta" id="listMeta"></div>`;
+    banner.querySelector("strong").textContent = trMsg("Ülke listesi yenilenmeli:");
+    banner.querySelector("span").textContent = trMsg("Yerleşik liste GİB Yayın 485 (2023) Ek 2 yedeğidir; güncel olmayabilir. Raporlama için kurumunuzun güncel GİB bildirim listesini kontrol edin veya");
+    banner.querySelector("span[data-k=json]").textContent = trMsg("Listeyi güncellemek için data/crs-partners.json dosyasını düzenleyin.");
+  } else {
+    banner.classList.add("ok-list");
+    banner.innerHTML = `<strong></strong> <span></span><div class="meta" id="listMeta"></div>`;
+    banner.querySelector("strong").textContent = trMsg("Ülke listesi:");
+    banner.querySelector("span").textContent = trMsg("Yüklenen liste güncel olarak işaretlenmiş.");
+  }
+  const metaNode = $("listMeta");
+  if (metaNode) {
+    metaNode.textContent = `${trMsg("Kaynak:")} ${PARTNER_META.source} · ${trMsg("tarih:")} ${PARTNER_META.asOf || "—"} · ${count} ${trMsg("ülke")} · ${trMsg("yükleme:")} ${PARTNER_META.loadedFrom}`;
+  }
+}
+
+async function loadPartnerList() {
+  try {
+    const res = await fetch("data/crs-partners.json", { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    const countries = Array.isArray(data.countries) ? data.countries.map((c) => String(c).toUpperCase()).filter((c) => /^[A-Z]{2}$/.test(c)) : [];
+    if (countries.length === 0) throw new Error("empty list");
+    TR_REPORTABLE_LIST = countries;
+    PARTNER_META = {
+      asOf: (data.meta && data.meta.as_of) || "",
+      needsRefresh: !(data.meta && data.meta.needs_refresh === false),
+      source: (data.meta && data.meta.source) || "data/crs-partners.json",
+      loadedFrom: "data/crs-partners.json"
+    };
+  } catch (err) {
+    PARTNER_META.loadedFrom = "embedded";
+    PARTNER_META.needsRefresh = true;
+    PARTNER_META.source = "GİB Yayın 485 (2023) Ek 2 — yerleşik yedek";
+    PARTNER_META.asOf = "2023-08";
+  }
+  updateListBanner();
+  if (typeof applyLang === "function") applyLang(LANG);
+}
+
+loadPartnerList();
+
 $("lang").addEventListener("click", () => { LANG = LANG === "tr" ? "en" : "tr"; applyLang(LANG); if (document.querySelector("#results .verdict")) run(); applyLang(LANG); });
 ["run", "sample", "clear"].forEach((id) => $(id).addEventListener("click", () => setTimeout(() => applyLang(LANG), 0)));
 </script>
-<footer style="margin-top:24px;font-size:12px;color:#555;line-height:1.5">
-  <p><strong>Yasal uyarı:</strong> Bu araç bir ön kontroldür, hukuki, vergi ya da uyum kararı değildir. Sonuçlar bir uzmanın değerlendirmesinin yerine geçmez.</p>
-  <p><strong>Ortak ülke listesi:</strong> Türkiye'nin CRS ortakları listesi GİB'in 2023 tarihli rehberinden (Yayın 485, Ek 2) alınmıştır ve güncel değildir. Güncel liste için OECD Automatic Exchange Portal'da Türkiye'yi seçerek kontrol edin.</p>
+<footer>
+  <p><strong>Yasal uyarı:</strong> Bu araç bir ön kontroldür, hukuki, vergi ya da uyum kararı / tavsiyesi değildir. Sonuçlar bir uzmanın değerlendirmesinin yerine geçmez.</p>
+  <p><strong>Ortak ülke listesi:</strong> Yerleşik yedek GİB Yayın 485 (2023) Ek 2'den gelir ve yenilenmelidir. Güncel liste için GİB bildirim yapılan ülke listesini veya OECD Automatic Exchange Portal'da Türkiye değişim ilişkilerini kontrol edin. Kolay güncelleme: <code>data/crs-partners.json</code>.</p>
   <p><strong>İnsan onayı:</strong> Sonuç her zaman bir uzman tarafından onaylanmalıdır. Özellikle yüksek değerli hesaplarda ilişki yöneticisinin durumu da değerlendirilmelidir.</p>
-  <p><strong>Ülke TIN kuralları:</strong> Bu sürümde ülke TIN format kuralları yoktur; TIN'ler elle doğrulanır.</p>
+  <p><strong>Ülke TIN kuralları:</strong> Bu genel sürümde üçüncü taraf ülke TIN format tablosu yoktur; TIN'ler elle doğrulanır. Kurum içi kurallar eklenebilir.</p>
+  <p><strong>Gizlilik:</strong> Form verileri yalnızca bu tarayıcı oturumunda işlenir; sunucuya gönderilmez.</p>
 </footer>
 </body>
 </html>

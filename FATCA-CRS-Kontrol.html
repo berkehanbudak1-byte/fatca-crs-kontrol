@@ -146,6 +146,29 @@
   </section>
 
   <section class="card">
+    <h2 data-i18n="s5">5. İsteğe bağlı: bakiye, açılış, önceki beyan</h2>
+    <p class="note" data-i18n="s5note">Boş bırakılırsa bu üçü kontrol edilmez. Bakiye tek hesabın yıl sonu değeridir. Dolar dışındaki tutarda kur hesabı sizdedir.</p>
+    <div class="grid">
+      <label class="f"><span data-i18n="bal">Yıl sonu bakiye</span>
+        <input type="text" id="balanceAmount" placeholder="250000"></label>
+      <label class="f"><span data-i18n="cur">Para birimi</span>
+        <input type="text" id="balanceCurrency" placeholder="USD"></label>
+      <label class="f"><span data-i18n="open">Hesap açılış tarihi</span>
+        <input type="text" id="openingDate" placeholder="2010-01-01"></label>
+      <label class="f"><span data-i18n="priorDate">Önceki öz beyan tarihi</span>
+        <input type="text" id="priorCertDate" placeholder="2012-06-01"></label>
+      <label class="f"><span data-i18n="priorRes">Önceki beyandaki mukimlik ülkeleri</span>
+        <input type="text" id="priorResidences" placeholder="TR veya TR; DE"></label>
+      <label class="f"><span data-i18n="priorUs">Önceki beyanda ABD kişisi</span>
+        <select id="priorUsPerson">
+          <option value="" data-i18n="priorEmpty">Sorulmadı</option>
+          <option value="E" data-i18n="priorYes">Evet</option>
+          <option value="H" data-i18n="priorNo">Hayır</option>
+        </select></label>
+    </div>
+  </section>
+
+  <section class="card">
     <div class="row" style="margin-top:0">
       <button type="button" class="primary" id="run" data-i18n="run">Kontrol et</button>
       <button type="button" id="sample" data-i18n="sample">Örnek doldur</button>
@@ -205,6 +228,11 @@ var I18N = {
     gc: "Yeşil kart var", d183: "Bu yıl ABD'de 183 gün veya daha fazla",
     hv: "Yüksek değerli hesap",
     rm: "İlişki yöneticisi, müşterinin raporlanabilir kişi olduğunu biliyor",
+    s5: "5. İsteğe bağlı: bakiye, açılış, önceki beyan",
+    s5note: "Boş bırakılırsa bu üçü kontrol edilmez. Bakiye tek hesabın yıl sonu değeridir. Dolar dışındaki tutarda kur hesabı sizdedir.",
+    bal: "Yıl sonu bakiye", cur: "Para birimi", open: "Hesap açılış tarihi",
+    priorDate: "Önceki öz beyan tarihi", priorRes: "Önceki beyandaki mukimlik ülkeleri",
+    priorUs: "Önceki beyanda ABD kişisi", priorEmpty: "Sorulmadı", priorYes: "Evet", priorNo: "Hayır",
     run: "Kontrol et", sample: "Örnek doldur", clear: "Temizle",
     empty: "Henüz sonuç yok. Kontrol et düğmesine basın.",
     batch: "Toplu kontrol",
@@ -244,6 +272,11 @@ var I18N = {
     gc: "Green card", d183: "183 days or more in the US this year",
     hv: "High-value account",
     rm: "The relationship manager knows the customer is a reportable person",
+    s5: "5. Optional: balance, opening date, prior certification",
+    s5note: "Leave these blank and they are not checked. The balance is one account at year end. You convert amounts that are not in dollars.",
+    bal: "Year-end balance", cur: "Currency", open: "Account opening date",
+    priorDate: "Prior self-certification date", priorRes: "Tax residences on the prior certification",
+    priorUs: "US person on the prior certification", priorEmpty: "Not asked", priorYes: "Yes", priorNo: "No",
     run: "Check", sample: "Fill example", clear: "Clear",
     empty: "No result yet. Press Check.",
     batch: "Batch check",

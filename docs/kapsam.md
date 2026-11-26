@@ -79,10 +79,33 @@ Türkiye tabloda yoktur. TCKN ve VKN motorun içindedir. Gerçek kişide hem 11 
 
 Araçtaki liste, OECD sayfasına gömülü geniş tablodur. Bazı ikincil kaynaklar yalnızca beş Doğu Karayip vatandaşlık programı ile Vanuatu'yu yazar. Çelişkide OECD tablosu esas alınır. Liste değişir; kullanmadan önce OECD sayfasına bakın. BAE ve Kıbrıs Türkiye'deki dosyalarda sık görülür. Müşteri gerçekten orada yaşıyorsa analist maddeyi kapatabilir.
 
+## Hesap yaşı, bakiye ve değişen koşul
+
+Üç alan isteğe bağlıdır. Boşsa bu kurallar susar. Yıl sonu bakiyesi tek hesaptır; IGA Ek I VI.C'deki ilişkili hesap toplamı yapılmaz. Tek hesap 1.000.000 USD'yi aşıyorsa toplam da aşar. 50.000 USD'nin altında kalan tek hesap, toplamın da altında olduğunu göstermez.
+
+| Kural | Önem | İstenecek belge | Kaynak paragrafı |
+|---|---|---|---|
+| A01 | Düşük (tarih okunamazsa Orta) | Tarih bozuksa açılış tarihinin teyidi | Türkiye–ABD IGA Ek I, Preexisting Account tanımı: 30.06.2014 itibarıyla tutulan hesap. Yeni bireysel hesap: 01.07.2014 veya sonra, Bölüm III |
+| A02 | Düşük | Tarih bozuksa açılış tarihinin teyidi | GİB Yayın 485 SSS Soru 11 ve Soru 24: 01.07.2017 öncesi mevcut, bu tarih ve sonrası yeni. Bu iki cevap okundu; rehberin tamamı satır satır doğrulanmadı |
+| T01 | Orta | Elektronik tarama, kâğıt kayıt, ilişki yöneticisi notu | IGA Ek I II.D: bakiye 1.000.000 USD'yi aşan mevcut bireysel hesap (30.06.2014 veya 31.12.2015 ve sonraki yılların 31 Aralık'ı). Alan yıl sonudur; 30.06.2014 anlık bakiyesi değildir |
+| T02 | Düşük | Belge yok | IGA Ek I II.B: 50.000 USD'yi aşıp 1.000.000 USD'yi aşmayan mevcut bireysel hesap, elektronik tarama |
+| T03 | Düşük | Belge yok | IGA Ek I II.A.1 istisnası 30.06.2014 bakiyesine bağlıdır. Yıl sonu 50.000 USD'nin altında diye istisna uygulanmaz. Metin bunu söyler |
+| T04 | Orta | Önceki takvim yılı son günkü yayımlanmış spot kur tutanağı | IGA Ek I VI.C.4. Araç kur tutmaz |
+| T05 | Orta | CRS yüksek değer inceleme kaydı | OECD CRS 2017, Bölüm III ve VIII: mevcut bireysel hesapta 1.000.000 USD üstü yüksek değer incelemesi. Bildirim muafiyeti değildir. GİB Soru 24 bireyselde eşik olmadığını söyler. Türkiye kılavuzunda bu rakamın madde metni doğrulanmadı |
+| T06 | Düşük | Belge yok | Hesap hem FATCA hem CRS için yeniyse sayısal eşik uygulanmaz. GİB Soru 24. FATCA Ek I III.A.1 yeni mevduat 50.000 USD istisnası ürün türü olmadığı için uygulanmaz |
+| T07 | Orta | Hesap açılış tarihi | Bakiye USD iken açılış tarihi yoksa eşik uygulanmaz. IGA Ek I II ve III; GİB Soru 24 |
+| K01 | Orta | Değişen koşulla uyumlu yeni öz beyan veya açıklama ve ikamet belgesi | CRS Bölüm VII; IGA Ek I II.B(2)–(3) ve II.D(5). Önceki mukimlik ülkeleri ile şimdiki liste aynı değilse |
+| K02 | Orta | Yeni statüyle uyumlu W-9 veya W-8BEN ve açıklama | Aynı değişen koşul maddeleri. Önceki ABD kişisi evet/hayır, şimdiki beyanla çelişirse |
+| K03 | Orta | Hangi beyanın güncel olduğunun kaydı | Önceki beyan tarihi okunamazsa veya bu ekrandaki beyan tarihinden sonraysa |
+| E02 | Orta | 30.06.2017 bakiyesi, sonraki yıl sonları ve istisna tercihi | GİB Soru 24: 01.07.2017 öncesi kurum hesabında 250.000 USD. Tek yıl sonu istisnayı kendiliğinden açmaz |
+| E04 | Orta | W-8BEN-E ve FATCA tüzel inceleme kaydı | IGA Ek I kurum hesabı: 30.06.2014'te 250.000 USD altı hesap, sonraki yıl sonunda 1.000.000 USD'yi aşınca incelenir |
+
 ## Bu sürümde olmayanlar
 
-- Hesap bakiyesi eşikleri (50.000 ve 1.000.000 ABD doları) ve yeni hesap / mevcut hesap ayrımı. Katalog da bunu kodlamaz; aynı kurallar her satıra uygulanır.
-- Değişen koşul (change in circumstances) için ayrı bir tarih alanı yok. Eski tarih tek başına "bir yılı geçti" diye reddedilmez. 2017 metninde öz beyan, değişen koşula kadar geçerlidir.
+- 30.06.2014 tarihli FATCA bakiyesi ayrı alan değildir. Yıl sonu bakiye onun yerine konmaz. Bu yüzden 50.000 USD istisnası kendiliğinden işletilmez.
+- Ürün türü (mevduat, saklama, nakdi değer sigortası, anüite) sorulmaz. IGA Ek I II.A.2 (sigorta/anüite 250.000 USD), II.A.4 (mevduat 50.000 USD) ve III.A.1 (yeni mevduat 50.000 USD) uygulanmaz.
+- İlişkili hesapların toplamı ve müşterek hesapta bakiyenin tamamının her ortağa yazılması yapılmaz (IGA Ek I VI.C).
+- Döviz kuru tutulmaz. USD dışı bakiyede eşik sayısı hesaplanmaz.
 - Belgenin sahteliği, TIN'in vergi dairesinde kayıtlı olması, CLN metninin okunması.
 - Tüzel kişide Aktif/Pasif NFE, GIIN ve kontrol eden kişinin tek tek ABD göstergesi. E01 yalnızca kapsam dışını söyler.
 - Çocuk ve vasi hesabı.

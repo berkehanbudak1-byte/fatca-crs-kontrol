@@ -166,6 +166,11 @@
     <div class="row" style="margin-top:0">
       <button class="primary" id="run">Kontrol et</button>
       <button id="sample">Örnek doldur</button>
+      <button id="presetUs">ABD Endiseli Bireysel</button>
+      <button id="presetMulti">Coklu Vergi Mukimi</button>
+      <button id="presetEntity">Tuzel Pasif NFE</button>
+      <button id="exportJson">JSON Denetim Raporu</button>
+      <button id="exportCsv">CSV Denetim Raporu</button>
       <button id="clear">Temizle</button>
     </div>
   </section>
@@ -588,7 +593,71 @@ function check(v, today) {
   return { results, verdict: verdict(results), docs: requiredDocs(results), blank: false };
 }
 
-var ENGINE = { check, buildForm, verdict, requiredDocs, validateFatca, validateCrs, tinCountryCheck, activePartnerList, COUNTRY_TABLE, DOCS, getPartnerMeta: () => PARTNER_META };
+const PRESETS = {
+  usIndicia: {
+    fullName: "John Kerem Demir", accountHolderType: "individual", dateOfBirth: "1985-08-22",
+    signed: true, residenceCountry: "TR", taxResidences: "TR", tin: "12345678901", noTinReason: "", noTinExplanation: "",
+    countryIssuesTin: true, addressCountry: "TR", kycCountry: "TR",
+    isPoBox: false, careOf: false, soleAddress: false,
+    citizenship: "TR", birthCountry: "US", phones: "+1 212 555 0199", cureDocs: "",
+    usPersonDeclared: false, standingUs: true, usPoa: false, usGreenCard: false, usDays183: false,
+    highValue: true, rmKnowsReportable: false
+  },
+  multiResident: {
+    fullName: "Elif Muller", accountHolderType: "individual", dateOfBirth: "1978-03-11",
+    signed: true, residenceCountry: "DE", taxResidences: "DE, TR", tin: "12345678901", noTinReason: "", noTinExplanation: "",
+    countryIssuesTin: true, addressCountry: "TR", kycCountry: "TR",
+    isPoBox: false, careOf: false, soleAddress: false,
+    citizenship: "TR", birthCountry: "TR", phones: "+49 170 1234567", cureDocs: "",
+    usPersonDeclared: false, standingUs: false, usPoa: false, usGreenCard: false, usDays183: false,
+    highValue: false, rmKnowsReportable: false
+  },
+  passiveEntity: {
+    fullName: "Bogazici Yatirim Holding A.S.", accountHolderType: "entity", dateOfBirth: "",
+    signed: true, residenceCountry: "DE", taxResidences: "DE", tin: "", noTinReason: "B", noTinExplanation: "Vergi dairesi tescil sureci devam ediyor",
+    countryIssuesTin: true, addressCountry: "DE", kycCountry: "DE",
+    isPoBox: false, careOf: false, soleAddress: false,
+    citizenship: "", birthCountry: "", phones: "+49 30 123456", cureDocs: "",
+    usPersonDeclared: false, standingUs: false, usPoa: true, usGreenCard: false, usDays183: false,
+    highValue: true, rmKnowsReportable: false
+  }
+};
+
+function exportAuditReport(v, today, format = "json") {
+  const out = check(v, today);
+  const report = {
+    generatedAt: new Date().toISOString(),
+    checkDate: today,
+    customer: {
+      fullName: v.fullName || "",
+      accountHolderType: v.accountHolderType || "individual",
+      residenceCountry: v.residenceCountry || "",
+      taxResidences: v.taxResidences || "",
+      tin: v.tin || "",
+      noTinReason: v.noTinReason || ""
+    },
+    verdict: out.verdict,
+    requiredDocs: out.docs,
+    results: out.results
+  };
+  if (format === "csv") {
+    const esc = (s) => `"${String(s == null ? "" : s).replace(/"/g, '""')}"`;
+    const rows = [
+      ["Section", "Rule", "Severity", "Message"],
+      ["VERDICT", out.verdict.code, out.verdict.label, out.verdict.sub]
+    ];
+    for (const [sec, res] of [["FATCA", out.results.fatca], ["CRS", out.results.crs]]) {
+      for (const e of (res.errors || [])) rows.push([sec, e.rule, "ERROR", e.msg]);
+      for (const w of (res.warnings || [])) rows.push([sec, w.rule, "WARNING", w.msg]);
+      for (const m of (res.manual || [])) rows.push([sec, m.rule, "MANUAL", m.msg]);
+    }
+    for (const d of (out.docs || [])) rows.push(["DOCUMENT", d.rule, "REQUIRED_DOC", d.doc]);
+    return rows.map((r) => r.map(esc).join(",")).join("\n");
+  }
+  return JSON.stringify(report, null, 2);
+}
+
+var ENGINE = { check, buildForm, verdict, requiredDocs, validateFatca, validateCrs, tinCountryCheck, activePartnerList, COUNTRY_TABLE, DOCS, PRESETS, exportAuditReport, getPartnerMeta: () => PARTNER_META };
 </script>
 
 <script>
@@ -776,12 +845,56 @@ function markFieldErrors(out) {
 }
 
 
+function applyPreset(presetKey) {
+  const preset = ENGINE.PRESETS[presetKey];
+  if (!preset) return;
+  const data = { ...preset, declarationDate: localToday() };
+  for (const [k, val] of Object.entries(data)) {
+    const node = $(k);
+    if (!node) continue;
+    if (node.type === "checkbox") node.checked = val === true; else node.value = val;
+  }
+  run();
+}
+
+function downloadFile(content, filename, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function handleExport(format) {
+  const today = localToday();
+  const v = readValues();
+  if (!v.declarationDate) v.declarationDate = today;
+  const content = ENGINE.exportAuditReport(v, today, format);
+  const ext = format === "csv" ? "csv" : "json";
+  const mime = format === "csv" ? "text/csv;charset=utf-8" : "application/json;charset=utf-8";
+  downloadFile(content, `fatca-crs-audit-${today}.${ext}`, mime);
+}
+
 $("run").addEventListener("click", run);
 $("sample").addEventListener("click", fillSample);
+$("presetUs").addEventListener("click", () => applyPreset("usIndicia"));
+$("presetMulti").addEventListener("click", () => applyPreset("multiResident"));
+$("presetEntity").addEventListener("click", () => applyPreset("passiveEntity"));
+$("exportJson").addEventListener("click", () => handleExport("json"));
+$("exportCsv").addEventListener("click", () => handleExport("csv"));
 $("clear").addEventListener("click", clearForm);
 
 // ===== English UI. Rule messages (F/C/R details) remain in Turkish in this version. =====
 const EN_TEXT = {
+  "ABD Endiseli Bireysel": "US Indicia Individual",
+  "Coklu Vergi Mukimi": "Multi-Tax Resident",
+  "Tuzel Pasif NFE": "Entity Passive NFE",
+  "JSON Denetim Raporu": "JSON Audit Report",
+  "CSV Denetim Raporu": "CSV Audit Report",
   "FATCA / CRS Müşteri Kontrolü": "FATCA / CRS Customer Check",
   "Ön kontroldür, hukuki karar değildir. Veriler yalnızca bu sayfada işlenir, hiçbir yere gönderilmez.": "A pre-check only, not a legal decision. Data is processed on this page only and is not sent anywhere.",
   "1. Müşteri bilgileri": "1. Customer details",
@@ -1059,7 +1172,7 @@ async function loadPartnerList() {
 loadPartnerList();
 
 $("lang").addEventListener("click", () => { LANG = LANG === "tr" ? "en" : "tr"; updateListBanner(); applyLang(LANG); if (document.querySelector("#results .verdict")) run(); applyLang(LANG); });
-["run", "sample", "clear"].forEach((id) => $(id).addEventListener("click", () => setTimeout(() => applyLang(LANG), 0)));
+["run", "sample", "presetUs", "presetMulti", "presetEntity", "clear"].forEach((id) => $(id).addEventListener("click", () => setTimeout(() => applyLang(LANG), 0)));
 </script>
 <footer>
   <p><strong>Yasal uyarı:</strong> Bu araç bir ön kontroldür, hukuki, vergi ya da uyum kararı / tavsiyesi değildir. Sonuçlar bir uzmanın değerlendirmesinin yerine geçmez.</p>

@@ -110,7 +110,8 @@
       <label class="f">Tüm vergi ikametgâh ülkeleri <span class="hint">virgülle, örn. TR, DE</span>
         <input type="text" id="taxResidences" placeholder="TR"></label>
       <label class="f">TIN (vergi numarası)
-        <input type="text" id="tin" placeholder="boş bırakılabilir"></label>
+        <input type="text" id="tin" placeholder="boş bırakılabilir">
+        <span class="hint" id="tinFormatHint">Ülke kodu girildiğinde resmi TIN formatı ve hane beklentisi burada gösterilir.</span></label>
       <label class="f">TIN yok ise neden kodu
         <select id="noTinReason">
           <option value="">— seçiniz —</option>
@@ -717,7 +718,57 @@ function exportAuditReport(v, today, format = "json") {
   return JSON.stringify(report, null, 2);
 }
 
-var ENGINE = { check, buildForm, verdict, requiredDocs, buildRemediationPlan, validateFatca, validateCrs, tinCountryCheck, activePartnerList, COUNTRY_TABLE, DOCS, PRESETS, exportAuditReport, getPartnerMeta: () => PARTNER_META };
+const TIN_FORMAT_GUIDES = {
+  TR: { country: "TR", label: "Türkiye", example: "12345678901 (TCKN - 11 hane) / 1234567890 (VKN - 10 hane)", expectedLengths: "10|11", formatInfo: "Gerçek kişiler için 11 haneli TCKN, tüzel kişiler için 10 haneli VKN (tamamen rakam)." },
+  US: { country: "US", label: "ABD", example: "123-45-6789 (SSN/ITIN) / 12-3456789 (EIN)", expectedLengths: "9", formatInfo: "SSN/ITIN: XXX-XX-XXXX (9 rakam); Tüzel EIN: XX-XXXXXXX (9 rakam)." },
+  DE: { country: "DE", label: "Almanya", example: "12345678901 (11 haneli Steuer-IdNr)", expectedLengths: "11|13", formatInfo: "11 haneli Steuer-IdNr (bireysel) veya 13 haneli Steuernummer." },
+  GB: { country: "GB", label: "Birleşik Krallık", example: "1234567890 (10 hane UTR) / AB123456C (9 hane NINO)", expectedLengths: "9|10", formatInfo: "10 haneli UTR (tamamen rakam) veya 9 karakterli NINO (2 harf + 6 rakam + 1 harf)." },
+  FR: { country: "FR", label: "Fransa", example: "1234567890123 (13 hane SPI) / 123456789 (9 hane SIREN)", expectedLengths: "9|13|14", formatInfo: "13 haneli bireysel vergi numarası (SPI), 9 haneli SIREN veya 14 haneli SIRET." },
+  NL: { country: "NL", label: "Hollanda", example: "123456782 (9 haneli BSN / RSIN)", expectedLengths: "9", formatInfo: "9 haneli sayı (BSN / RSIN), 11-test kontrol basamağı ile." },
+  CH: { country: "CH", label: "İsviçre", example: "756.1234.5678.97 (AHV) / CHE-123.456.789 (UID)", expectedLengths: "9|12|13", formatInfo: "'756' ön ekli 13 haneli AHV veya 'CHE' ön ekli 9 rakamlı UID." },
+  IT: { country: "IT", label: "İtalya", example: "RSSMRA85T10A562S (16 karakter) / 12345678903 (11 rakam)", expectedLengths: "11|16", formatInfo: "Codice Fiscale: 16 alfanümerik karakter; Partita IVA: 11 rakam." }
+};
+
+function getTinFormatGuide(countryCode) {
+  const code = String(countryCode || "").trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(code)) {
+    return {
+      country: code,
+      known: false,
+      label: "Bilinmeyen Ülke",
+      example: "Örn. 12345678901",
+      expectedLengths: "4-25",
+      formatInfo: "Geçerli 2 harfli ISO ülke kodu giriniz (örn. TR, DE, US, GB, FR)."
+    };
+  }
+  if (TIN_FORMAT_GUIDES[code]) {
+    return { known: true, ...TIN_FORMAT_GUIDES[code] };
+  }
+  const entry = COUNTRY_TABLE.find((c) => c.code === code);
+  if (entry) {
+    const lens = entry.allowedLengths || (entry.maxLength ? `1-${entry.maxLength}` : "Değişken");
+    const firstLen = Number(String(entry.allowedLengths || "9").split("|")[0]) || 9;
+    const sample = entry.digitsOnly ? "123456789012345".slice(0, firstLen) : "A123456789".slice(0, firstLen);
+    return {
+      country: code,
+      known: true,
+      label: entry.label || code,
+      example: sample,
+      expectedLengths: lens,
+      formatInfo: entry.formatInfo || `${code} resmi TIN formatı (${lens} karakter).`
+    };
+  }
+  return {
+    country: code,
+    known: false,
+    label: code,
+    example: "1234567890",
+    expectedLengths: "4-25",
+    formatInfo: `${code} için özel tablo kaydı yok; 4-25 karakter alfanümerik genel CRS TIN kontrolü uygulanır.`
+  };
+}
+
+var ENGINE = { check, buildForm, verdict, requiredDocs, buildRemediationPlan, validateFatca, validateCrs, tinCountryCheck, getTinFormatGuide, activePartnerList, COUNTRY_TABLE, DOCS, PRESETS, exportAuditReport, getPartnerMeta: () => PARTNER_META };
 </script>
 
 <script>
@@ -955,14 +1006,31 @@ function handleExport(format) {
   downloadFile(content, `fatca-crs-audit-${today}.${ext}`, mime);
 }
 
+function updateTinFormatHint() {
+  const resNode = $("residenceCountry");
+  const tinNode = $("tin");
+  const hintNode = $("tinFormatHint");
+  if (!resNode || !hintNode) return;
+  const code = String(resNode.value || "").trim().toUpperCase();
+  if (!code) {
+    hintNode.textContent = "Ülke kodu girildiğinde resmi TIN formatı ve hane beklentisi burada gösterilir.";
+    if (tinNode) tinNode.placeholder = "boş bırakılabilir";
+    return;
+  }
+  const guide = ENGINE.getTinFormatGuide(code);
+  hintNode.textContent = `[${guide.country} - ${guide.label}] Beklenen uzunluk: ${guide.expectedLengths} karakter · Örnek: ${guide.example} · Kural: ${guide.formatInfo}`;
+  if (tinNode) tinNode.placeholder = `Örn: ${guide.example}`;
+}
+
+$("residenceCountry").addEventListener("input", updateTinFormatHint);
 $("run").addEventListener("click", run);
-$("sample").addEventListener("click", fillSample);
-$("presetUs").addEventListener("click", () => applyPreset("usIndicia"));
-$("presetMulti").addEventListener("click", () => applyPreset("multiResident"));
-$("presetEntity").addEventListener("click", () => applyPreset("passiveEntity"));
+$("sample").addEventListener("click", () => { fillSample(); updateTinFormatHint(); });
+$("presetUs").addEventListener("click", () => { applyPreset("usIndicia"); updateTinFormatHint(); });
+$("presetMulti").addEventListener("click", () => { applyPreset("multiResident"); updateTinFormatHint(); });
+$("presetEntity").addEventListener("click", () => { applyPreset("passiveEntity"); updateTinFormatHint(); });
 $("exportJson").addEventListener("click", () => handleExport("json"));
 $("exportCsv").addEventListener("click", () => handleExport("csv"));
-$("clear").addEventListener("click", clearForm);
+$("clear").addEventListener("click", () => { clearForm(); updateTinFormatHint(); });
 
 // ===== English UI. Rule messages (F/C/R details) remain in Turkish in this version. =====
 const EN_TEXT = {

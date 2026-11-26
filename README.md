@@ -34,7 +34,8 @@ http://127.0.0.1:4123/
 2. Vergi mukimliğini yazın. TIN varsa TIN'i, yoksa A, B veya C nedenini seçin. B ise nedenini yazın.
 3. İkamet adresinin ülkesini ve telefonu girin.
 4. ABD bağlantısı varsa ilgili kutuyu işaretleyin.
-5. **Kontrol et** düğmesine basın.
+5. İsterseniz yıl sonu bakiyesini, açılış tarihini ve dosyadaki önceki öz beyanı girin. Bu üçü boş kalabilir.
+6. **Kontrol et** düğmesine basın.
 
 **Örnek doldur** sentetik bir kayıt koyar. Üzerinde gerçek müşteri yoktur.
 

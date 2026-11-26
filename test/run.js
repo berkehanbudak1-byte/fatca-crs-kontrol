@@ -294,6 +294,80 @@ test("formdan makul örnek", function () {
   assert.deepStrictEqual(out.findings.map(function (f) { return f.id; }), []);
 });
 
+test("bakiye, açılış tarihi ve önceki beyan", function () {
+  function ids(over) { return idsOf(clean(over)); }
+  function one(over, id) {
+    return E.evaluateRow(clean(over), { today: TODAY }).findings.filter(function (f) { return f.id === id; })[0];
+  }
+  assert.ok(one({ hesap_acilis: "2010-01-01" }, "A01").msg.indexOf("FATCA mevcut hesap") !== -1);
+  assert.ok(one({ hesap_acilis: "2010-01-01" }, "A02").msg.indexOf("CRS mevcut hesap") !== -1);
+  assert.ok(one({ hesap_acilis: "2014-07-01" }, "A01").msg.indexOf("FATCA yeni hesap") !== -1);
+  assert.ok(one({ hesap_acilis: "2014-07-01" }, "A02").msg.indexOf("CRS mevcut hesap") !== -1);
+  assert.ok(one({ hesap_acilis: "2017-07-01" }, "A02").msg.indexOf("CRS yeni hesap") !== -1);
+  assert.strictEqual(one({ hesap_acilis: "2010-01-01" }, "A01").severity, "Düşük");
+  assert.strictEqual(E.evaluateRow(clean({ hesap_acilis: "2010-01-01" }), { today: TODAY }).verdict.label, "Makul");
+  assert.strictEqual(one({ hesap_acilis: "yarin" }, "A01").severity, "Orta");
+
+  assert.ok(ids({ hesap_acilis: "2010-01-01", bakiye: "2000000", bakiye_para: "USD" }).indexOf("T01") !== -1);
+  assert.ok(ids({ hesap_acilis: "2010-01-01", bakiye: "2000000", bakiye_para: "USD" }).indexOf("T05") !== -1);
+  assert.strictEqual(E.evaluateRow(clean({ hesap_acilis: "2010-01-01", bakiye: "2000000", bakiye_para: "USD" }), { today: TODAY }).verdict.label, "Manuel inceleme");
+  assert.ok(ids({ hesap_acilis: "2010-01-01", bakiye: "200000", bakiye_para: "USD" }).indexOf("T02") !== -1);
+  assert.ok(ids({ hesap_acilis: "2010-01-01", bakiye: "1.000.000", bakiye_para: "USD" }).indexOf("T01") === -1);
+  assert.ok(ids({ hesap_acilis: "2010-01-01", bakiye: "40000", bakiye_para: "USD" }).indexOf("T03") !== -1);
+  assert.ok(one({ hesap_acilis: "2010-01-01", bakiye: "40000", bakiye_para: "USD" }, "T03").msg.indexOf("uygulanmadı") !== -1);
+  var yeni = ids({ hesap_acilis: "2018-01-01", bakiye: "2000000", bakiye_para: "USD" });
+  assert.ok(yeni.indexOf("T06") !== -1);
+  assert.ok(yeni.indexOf("T01") === -1);
+  assert.ok(yeni.indexOf("T05") === -1);
+  assert.ok(ids({ hesap_acilis: "2010-01-01", bakiye: "10000", bakiye_para: "EUR" }).indexOf("T04") !== -1);
+  assert.ok(ids({ hesap_acilis: "2010-01-01", bakiye: "10000", bakiye_para: "EUR" }).indexOf("T01") === -1);
+  assert.ok(ids({ bakiye: "2000000", bakiye_para: "USD" }).indexOf("T07") !== -1);
+  assert.ok(one({ hesap_acilis: "2010-01-01", bakiye: "2000000", bakiye_para: "USD" }, "T05").msg.indexOf("doğrulanmadı") !== -1);
+
+  assert.ok(ids({ onceki_mukimlik: "DE" }).indexOf("K01") !== -1);
+  assert.ok(ids({ onceki_mukimlik: "TR" }).indexOf("K01") === -1);
+  assert.strictEqual(E.evaluateRow(clean({ onceki_mukimlik: "DE" }), { today: TODAY }).verdict.label, "Manuel inceleme");
+  assert.ok(E.evaluateRow(clean({ onceki_mukimlik: "DE" }), { today: TODAY }).docs.some(function (d) { return d.id === "K01"; }));
+  assert.ok(ids({ onceki_abd_kisisi: "E" }).indexOf("K02") !== -1);
+  assert.ok(ids({ onceki_abd_kisisi: "H" }).indexOf("K02") === -1);
+  assert.ok(ids({ mukimlik_ulke_1: "US", tin_1: "452-88-1001", ikamet_adresi_ulke: "US", posta_adresi_ulke: "US", vatandaslik: "US", telefon_1: "+1 212 555 0100", onceki_abd_kisisi: "H" }).indexOf("K02") !== -1);
+  assert.ok(ids({ onceki_beyan_tarihi: "01.01.2025" }).indexOf("K03") !== -1);
+  assert.ok(ids({ onceki_beyan_tarihi: "yok" }).indexOf("K03") !== -1);
+
+  var kucuk = E.evaluateRow({ musteri_tipi: "T", ad_soyad: "Ornek Holding", hesap_acilis: "2010-01-01", bakiye: "100000", bakiye_para: "USD" }, { today: TODAY });
+  assert.ok(kucuk.findings.some(function (f) { return f.id === "E02"; }));
+  kucuk.findings.forEach(function (f) { fired[f.id] = 1; });
+  var buyuk = E.evaluateRow({ musteri_tipi: "T", ad_soyad: "Ornek Holding", hesap_acilis: "2010-01-01", bakiye: "2,000,000.00", bakiye_para: "USD" }, { today: TODAY });
+  assert.ok(buyuk.findings.some(function (f) { return f.id === "E04"; }));
+  buyuk.findings.forEach(function (f) { fired[f.id] = 1; });
+
+  var form = E.checkForm({
+    fullName: "Ayşe Örnek", accountHolderType: "individual", dateOfBirth: "1990-05-14",
+    declarationDate: "2024-03-15", signed: true, citizenship: "TR", birthCountry: "TR",
+    res1: "TR", tin1: "10000001136", addressCountry: "TR", mailCountry: "TR", kycCountry: "TR",
+    phone1: "+90 500 000 00 01", openingDate: "2010-01-01", balanceAmount: "2500000", balanceCurrency: "USD",
+    priorCertDate: "2012-01-01", priorResidences: "DE", priorUsPerson: "H"
+  }, { today: TODAY });
+  ["A01", "A02", "T01", "T05", "K01"].forEach(function (id) {
+    assert.ok(form.findings.some(function (f) { return f.id === id; }), id);
+  });
+});
+
+test("örnek eşik CSV'si sentetik satırları okur", function () {
+  var text = fs.readFileSync(path.join(__dirname, "..", "examples", "ornek-esik.csv"), "utf8");
+  var summary = E.screenCsv(text, { today: TODAY });
+  assert.strictEqual(summary.error, undefined);
+  assert.strictEqual(summary.total, 3);
+  var byNo = {};
+  summary.results.forEach(function (r) { byNo[r.musteriNo] = r.ruleIds; r.findings.forEach(function (f) { fired[f.id] = 1; }); });
+  assert.ok(byNo["ORNEK-ESIK-1"].indexOf("T01") !== -1);
+  assert.ok(byNo["ORNEK-ESIK-2"].indexOf("K01") !== -1);
+  assert.ok(byNo["ORNEK-ESIK-3"].indexOf("T04") !== -1);
+  summary.results.forEach(function (r) {
+    assert.ok(r.fullName.indexOf("ÖRNEK VERİ") !== -1);
+  });
+});
+
 test("kapsam tablosu her kuralı kaynakla listeler", function () {
   var md = fs.readFileSync(path.join(__dirname, "..", "docs", "kapsam.md"), "utf8");
   Object.keys(E.RULES).forEach(function (id) {

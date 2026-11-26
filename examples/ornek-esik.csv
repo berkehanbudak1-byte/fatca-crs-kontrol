@@ -1,0 +1,4 @@
+musteri_no;ad_soyad;musteri_tipi;vatandaslik;dogum_ulkesi;ikamet_adresi_ulke;posta_adresi_ulke;telefon_1;mukimlik_ulke_1;tin_1;ozbeyan_tarihi;hesap_acilis;bakiye;bakiye_para;onceki_beyan_tarihi;onceki_mukimlik;onceki_abd_kisisi
+ORNEK-ESIK-1;ÖRNEK VERİ - yüksek bakiyeli mevcut hesap;G;TR;TR;TR;TR;+90 500 000 00 11;TR;10000001136;15.03.2024;2010-01-01;2500000;USD;;;
+ORNEK-ESIK-2;ÖRNEK VERİ - önceki mukimlik DE;G;TR;TR;TR;TR;+90 500 000 00 12;TR;10000001136;15.03.2024;2016-05-01;;;01.01.2016;DE;H
+ORNEK-ESIK-3;ÖRNEK VERİ - euro bakiye;G;TR;TR;TR;TR;+90 500 000 00 13;TR;10000001136;15.03.2024;2012-04-04;10000;EUR;;;

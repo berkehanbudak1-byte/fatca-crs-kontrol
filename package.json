@@ -4,8 +4,8 @@
   "private": true,
   "description": "Offline FATCA/CRS customer pre-check (static HTML). Pre-check only, not legal advice.",
   "scripts": {
-    "start": "python3 -m http.server 4123",
-    "serve": "python3 -m http.server 4123",
+    "start": "python3 -m http.server 4123 --bind 127.0.0.1",
+    "serve": "python3 -m http.server 4123 --bind 127.0.0.1",
     "test": "node test/run.js"
   }
 }

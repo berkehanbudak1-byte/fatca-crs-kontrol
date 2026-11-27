@@ -456,7 +456,7 @@ test("güvenlik: CSV boyut/satır sınırları ve para birimi sanitizasyonu", fu
 
 test("güvenlik: HTML innerHTML yok, CSP SHA-256 hash ve referrer politikası doğru", function () {
   var crypto = require("crypto");
-  var html = fs.readFileSync(path.join(__dirname, "..", "FATCA-CRS-Kontrol.html"), "utf8");
+  var html = fs.readFileSync(path.join(__dirname, "..", "FATCA-CRS-Kontrol.html"), "utf8").replace(/\r\n?/g, "\n");
   assert.strictEqual(/\.innerHTML\s*=/.test(html), false, "innerHTML kullanılmamalı");
   assert.ok(/<meta\s+name="referrer"\s+content="no-referrer">/i.test(html));
   var cspMatch = html.match(/<meta\s+http-equiv="Content-Security-Policy"\s+content="([^"]+)"/i);
@@ -464,20 +464,37 @@ test("güvenlik: HTML innerHTML yok, CSP SHA-256 hash ve referrer politikası do
   var csp = cspMatch[1];
   assert.ok(csp.indexOf("default-src 'none'") !== -1);
   assert.ok(csp.indexOf("object-src 'none'") !== -1);
+  var scriptDirective = csp.split(";").map(function (s) { return s.trim(); }).find(function (s) {
+    return s.indexOf("script-src ") === 0;
+  });
+  assert.ok(scriptDirective, "script-src yönergesi eksik");
+  assert.strictEqual(scriptDirective.indexOf("'unsafe-inline'"), -1, "script-src unsafe-inline içermemeli");
+  assert.strictEqual(scriptDirective.indexOf("'unsafe-eval'"), -1, "script-src unsafe-eval içermemeli");
+  assert.strictEqual(/\s\*(?:\s|$)/.test(scriptDirective), false, "script-src wildcard içermemeli");
   var scriptRe = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g;
   var m, found = 0;
   while ((m = scriptRe.exec(html))) {
     found++;
     var digest = "'sha256-" + crypto.createHash("sha256").update(m[1], "utf8").digest("base64") + "'";
-    assert.ok(csp.indexOf(digest) !== -1, "CSP hash uyuşmuyor: " + digest);
+    assert.ok(scriptDirective.indexOf(digest) !== -1, "CSP hash uyuşmuyor: " + digest);
   }
   assert.strictEqual(found, 1);
-  assert.ok(/id="fullName"[^>]*autocomplete="off"/.test(html));
-  assert.ok(/id="tin1"[^>]*autocomplete="off"/.test(html));
 
-  var indexHtml = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
-  assert.ok(/http-equiv="Content-Security-Policy"/i.test(indexHtml));
+  var textInputs = html.match(/<(?:input\b[^>]*type="text"|textarea\b)[^>]*>/gi) || [];
+  assert.ok(textInputs.length >= 20, "PII metin alanları bulunamadı");
+  textInputs.forEach(function (tag) {
+    assert.ok(/\bautocomplete="off"/i.test(tag), "autocomplete=off eksik: " + tag);
+  });
+
+  var indexHtml = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8").replace(/\r\n?/g, "\n");
+  var indexCspMatch = indexHtml.match(/<meta\s+http-equiv="Content-Security-Policy"\s+content="([^"]+)"/i);
+  assert.ok(indexCspMatch, "index.html CSP meta etiketi eksik");
+  assert.ok(indexCspMatch[1].indexOf("script-src 'none'") !== -1, "index.html script-src 'none' içermeli");
   assert.ok(/name="referrer"\s+content="no-referrer"/i.test(indexHtml));
+
+  var pkg = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf8"));
+  assert.ok(pkg.scripts.start.indexOf("--bind 127.0.0.1") !== -1, "start scripti 127.0.0.1 loopback bağlamalı");
+  assert.ok(pkg.scripts.serve.indexOf("--bind 127.0.0.1") !== -1, "serve scripti 127.0.0.1 loopback bağlamalı");
 });
 
 test("güvenlik: toplu-kontrol CLI yol doğrulaması", function () {

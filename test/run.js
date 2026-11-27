@@ -381,6 +381,115 @@ test("her kural en az bir testte tetiklendi", function () {
   assert.deepStrictEqual(missing, []);
 });
 
+test("güvenlik: CSV/Excel formül enjeksiyonu etkisizleştirilir", function () {
+  var payloads = [
+    "=CMD|'/C calc'!A0",
+    "+SUM(A1:A2)",
+    "-2+3+cmd|' /C calc'!A0",
+    "@SUM(1+1)*cmd|' /C calc'!A0",
+    "\t=1+1",
+    "\r=1+1",
+    "\n=1+1",
+    "   =HYPERLINK(\"http://evil\")",
+    " -100"
+  ];
+  payloads.forEach(function (p) {
+    var safe = E.excelSafe(p);
+    assert.strictEqual(safe[0], "'", "formül nötralize edilmedi: " + JSON.stringify(p));
+  });
+  assert.strictEqual(E.excelSafe("-123.45"), "-123.45");
+  assert.strictEqual(E.excelSafe("ORNEK-001"), "ORNEK-001");
+
+  var maliciousCsv = [
+    "musteri_no;ad_soyad;musteri_tipi;vatandaslik;dogum_ulkesi;ikamet_adresi_ulke;mukimlik_ulke_1;tin_1;ozbeyan_tarihi",
+    "=1+1;+CMD|'/C calc'!A0;G;TR;TR;TR;TR;10000000146;01.03.2024"
+  ].join("\n");
+  var exported = E.exportBatchCsv(E.screenCsv(maliciousCsv, { today: TODAY }));
+  assert.ok(exported.indexOf("'=1+1") !== -1);
+  assert.ok(exported.indexOf("'+CMD") !== -1);
+
+  var directExport = E.exportBatchCsv({
+    results: [{
+      rowIndex: 2,
+      musteriNo: "\t=1+1",
+      fullName: "\r@SUM(A1)",
+      scope: "individual",
+      verdict: { label: "Makul" },
+      ruleIds: [],
+      highest: "-",
+      score: 0,
+      findings: [],
+      docs: []
+    }]
+  });
+  assert.ok(directExport.indexOf("'\t=1+1") !== -1);
+  assert.ok(directExport.indexOf("'\r@SUM(A1)") !== -1);
+});
+
+test("güvenlik: prototype pollution ve Object.prototype anahtarları engellenir", function () {
+  ["__proto__", "constructor", "toString", "valueOf", "hasOwnProperty"].forEach(function (k) {
+    assert.strictEqual(E.ulkeCoz(k), null, "ulkeCoz(" + k + ")");
+    assert.strictEqual(E.evaluateRow(clean({ musteri_tipi: k }), { today: TODAY }).scope, "individual", "tuzelMi(" + k + ")");
+    assert.strictEqual(E.evaluateRow(clean({ abd_hesabina_duzenli_talimat: k }), { today: TODAY }).findings.some(function (f) { return f.id === "F06"; }), false);
+  });
+  var protoCsv = "__proto__;constructor;mukimlik_ulke_1;ikamet_adresi_ulke;tin_1;ozbeyan_tarihi\n1;2;TR;TR;10000000146;01.03.2024";
+  var summary = E.screenCsv(protoCsv, { today: TODAY });
+  assert.strictEqual(summary.error, undefined);
+  assert.strictEqual(summary.total, 1);
+  assert.strictEqual(({}).polluted, undefined);
+});
+
+test("güvenlik: CSV boyut/satır sınırları ve para birimi sanitizasyonu", function () {
+  var tooBig = E.screenCsv("a".repeat(200), { maxBytes: 100 });
+  assert.ok(tooBig.error && tooBig.error.indexOf("sınırı") !== -1);
+
+  var manyRows = "mukimlik_ulke_1;ikamet_adresi_ulke;tin_1;ozbeyan_tarihi\n" +
+    Array(10).fill("TR;TR;10000000146;01.03.2024").join("\n");
+  var limited = E.screenCsv(manyRows, { maxRows: 5 });
+  assert.ok(limited.error && limited.error.indexOf("satır") !== -1);
+
+  var badCur = E.evaluateRow(clean({ hesap_acilis: "2010-01-01", bakiye: "1000", bakiye_para: "<script>alert(1)</script>" }), { today: TODAY });
+  badCur.findings.forEach(function (f) {
+    assert.strictEqual(f.msg.indexOf("<script>"), -1);
+  });
+});
+
+test("güvenlik: HTML innerHTML yok, CSP SHA-256 hash ve referrer politikası doğru", function () {
+  var crypto = require("crypto");
+  var html = fs.readFileSync(path.join(__dirname, "..", "FATCA-CRS-Kontrol.html"), "utf8");
+  assert.strictEqual(/\.innerHTML\s*=/.test(html), false, "innerHTML kullanılmamalı");
+  assert.ok(/<meta\s+name="referrer"\s+content="no-referrer">/i.test(html));
+  var cspMatch = html.match(/<meta\s+http-equiv="Content-Security-Policy"\s+content="([^"]+)"/i);
+  assert.ok(cspMatch, "CSP meta etiketi bulunamadı");
+  var csp = cspMatch[1];
+  assert.ok(csp.indexOf("default-src 'none'") !== -1);
+  assert.ok(csp.indexOf("object-src 'none'") !== -1);
+  var scriptRe = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g;
+  var m, found = 0;
+  while ((m = scriptRe.exec(html))) {
+    found++;
+    var digest = "'sha256-" + crypto.createHash("sha256").update(m[1], "utf8").digest("base64") + "'";
+    assert.ok(csp.indexOf(digest) !== -1, "CSP hash uyuşmuyor: " + digest);
+  }
+  assert.strictEqual(found, 1);
+  assert.ok(/id="fullName"[^>]*autocomplete="off"/.test(html));
+  assert.ok(/id="tin1"[^>]*autocomplete="off"/.test(html));
+
+  var indexHtml = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
+  assert.ok(/http-equiv="Content-Security-Policy"/i.test(indexHtml));
+  assert.ok(/name="referrer"\s+content="no-referrer"/i.test(indexHtml));
+});
+
+test("güvenlik: toplu-kontrol CLI yol doğrulaması", function () {
+  var cli = require("../scripts/toplu-kontrol");
+  var sampleIn = path.join(__dirname, "..", "examples", "ornek-musteriler.csv");
+  assert.throws(function () { cli.validateCliPaths(sampleIn, sampleIn); }, /aynı olamaz/);
+  assert.throws(function () { cli.validateCliPaths("a\0b.csv", "/tmp/out.csv"); }, /NUL/);
+  assert.throws(function () { cli.validateCliPaths(path.join(__dirname, ".."), "/tmp/out.csv"); }, /düzenli bir dosya/);
+  var ok = cli.validateCliPaths(sampleIn, path.join(require("os").tmpdir(), "fatca-test-out.csv"));
+  assert.strictEqual(ok.inputPath, path.resolve(sampleIn));
+});
+
 if (failed) {
   console.error(failed + " test başarısız");
   process.exit(1);

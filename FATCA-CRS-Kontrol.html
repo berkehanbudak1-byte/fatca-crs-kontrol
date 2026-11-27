@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-onmOUJlsplQySM3Ec4/VwYqSbe1fRHQoqWwBdX3hiEE='; style-src 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
 <title>FATCA / CRS Kontrol</title>
 <style>
   :root {
@@ -223,20 +225,20 @@
     <div class="card-h"><span class="step">1</span><h2 data-i18n="s1">Kişi bilgileri</h2></div>
     <div class="grid">
       <label class="f"><span data-i18n="name">Ad soyad</span>
-        <input type="text" id="fullName" placeholder="Ayşe Örnek"></label>
+        <input type="text" id="fullName" placeholder="Ayşe Örnek" autocomplete="off" maxlength="160"></label>
       <label class="f"><span data-i18n="type">Hesap türü</span>
         <select id="accountHolderType">
           <option value="individual" data-i18n="ind">Gerçek kişi</option>
           <option value="entity" data-i18n="ent">Tüzel kişi</option>
         </select></label>
       <label class="f"><span data-i18n="dob">Doğum tarihi</span>
-        <input type="text" id="dateOfBirth" placeholder="1990-05-14"></label>
+        <input type="text" id="dateOfBirth" placeholder="1990-05-14" autocomplete="off" maxlength="32"></label>
       <label class="f"><span data-i18n="decl">Beyan tarihi</span>
-        <input type="text" id="declarationDate" placeholder="2024-03-15"></label>
+        <input type="text" id="declarationDate" placeholder="2024-03-15" autocomplete="off" maxlength="32"></label>
       <label class="f"><span data-i18n="cit">Vatandaşlık</span>
-        <input type="text" id="citizenship" placeholder="TR veya TR; DE"></label>
+        <input type="text" id="citizenship" placeholder="TR veya TR; DE" autocomplete="off" maxlength="120"></label>
       <label class="f"><span data-i18n="birth">Doğum ülkesi</span>
-        <input type="text" id="birthCountry" placeholder="TR"></label>
+        <input type="text" id="birthCountry" placeholder="TR" autocomplete="off" maxlength="80"></label>
     </div>
     <div class="checks">
       <label class="c"><input type="checkbox" id="signed"> <span data-i18n="signed">Beyan imzalı veya onaylı</span></label>
@@ -247,37 +249,37 @@
     <div class="card-h"><span class="step">2</span><h2 data-i18n="s2">Vergi mukimliği</h2></div>
     <p class="note" data-i18n="s2note">En fazla üç ülke. TIN yoksa A, B veya C seçin. B için alttaki açıklama zorunludur.</p>
     <div class="grid">
-      <label class="f"><span data-i18n="c1">Ülke 1</span><input type="text" id="res1" placeholder="TR"></label>
-      <label class="f"><span data-i18n="t1">TIN 1</span><input type="text" id="tin1" placeholder="10000001136">
+      <label class="f"><span data-i18n="c1">Ülke 1</span><input type="text" id="res1" placeholder="TR" autocomplete="off" maxlength="80"></label>
+      <label class="f"><span data-i18n="t1">TIN 1</span><input type="text" id="tin1" placeholder="10000001136" autocomplete="off" maxlength="64">
         <span class="hint" id="tinHint" data-i18n="tinHint">Ülke yazılınca biçim burada görünür.</span></label>
       <label class="f"><span data-i18n="r1">Neden 1</span>
         <select id="reason1"><option value="">—</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></label>
-      <label class="f"><span data-i18n="c2">Ülke 2</span><input type="text" id="res2"></label>
-      <label class="f"><span data-i18n="t2">TIN 2</span><input type="text" id="tin2"></label>
+      <label class="f"><span data-i18n="c2">Ülke 2</span><input type="text" id="res2" autocomplete="off" maxlength="80"></label>
+      <label class="f"><span data-i18n="t2">TIN 2</span><input type="text" id="tin2" autocomplete="off" maxlength="64"></label>
       <label class="f"><span data-i18n="r2">Neden 2</span>
         <select id="reason2"><option value="">—</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></label>
-      <label class="f"><span data-i18n="c3">Ülke 3</span><input type="text" id="res3"></label>
-      <label class="f"><span data-i18n="t3">TIN 3</span><input type="text" id="tin3"></label>
+      <label class="f"><span data-i18n="c3">Ülke 3</span><input type="text" id="res3" autocomplete="off" maxlength="80"></label>
+      <label class="f"><span data-i18n="t3">TIN 3</span><input type="text" id="tin3" autocomplete="off" maxlength="64"></label>
       <label class="f"><span data-i18n="r3">Neden 3</span>
         <select id="reason3"><option value="">—</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></label>
     </div>
     <label class="f" style="margin-top:12px"><span data-i18n="whyB">Neden B ise açıklama</span>
-      <input type="text" id="noTinExplanation"></label>
+      <input type="text" id="noTinExplanation" autocomplete="off" maxlength="500"></label>
     <p class="note" style="margin-top:8px" data-i18n="abc">A: ülke TIN vermiyor. B: müşteri TIN alamadı. C: ülkenin hukuku TIN istemiyor.</p>
   </section>
 
   <section class="card">
     <div class="card-h"><span class="step">3</span><h2 data-i18n="s3">Hesap bilgileri</h2></div>
     <div class="grid">
-      <label class="f"><span data-i18n="addr">İkamet adresi ülkesi</span><input type="text" id="addressCountry" placeholder="TR"></label>
-      <label class="f"><span data-i18n="mail">Posta adresi ülkesi</span><input type="text" id="mailCountry" placeholder="TR"></label>
-      <label class="f"><span data-i18n="kyc">KYC belge ülkesi</span><input type="text" id="kycCountry" placeholder="TR"></label>
-      <label class="f"><span data-i18n="p1">Telefon 1</span><input type="text" id="phone1" placeholder="+90 500 000 00 01"></label>
-      <label class="f"><span data-i18n="p2">Telefon 2</span><input type="text" id="phone2"></label>
-      <label class="f"><span data-i18n="p3">Telefon 3</span><input type="text" id="phone3"></label>
-      <label class="f"><span data-i18n="bal">Yıl sonu bakiye</span><input type="text" id="balanceAmount" placeholder="250000"></label>
-      <label class="f"><span data-i18n="cur">Para birimi</span><input type="text" id="balanceCurrency" placeholder="USD"></label>
-      <label class="f"><span data-i18n="open">Hesap açılış tarihi</span><input type="text" id="openingDate" placeholder="2010-01-01"></label>
+      <label class="f"><span data-i18n="addr">İkamet adresi ülkesi</span><input type="text" id="addressCountry" placeholder="TR" autocomplete="off" maxlength="80"></label>
+      <label class="f"><span data-i18n="mail">Posta adresi ülkesi</span><input type="text" id="mailCountry" placeholder="TR" autocomplete="off" maxlength="80"></label>
+      <label class="f"><span data-i18n="kyc">KYC belge ülkesi</span><input type="text" id="kycCountry" placeholder="TR" autocomplete="off" maxlength="80"></label>
+      <label class="f"><span data-i18n="p1">Telefon 1</span><input type="text" id="phone1" placeholder="+90 500 000 00 01" autocomplete="off" maxlength="32"></label>
+      <label class="f"><span data-i18n="p2">Telefon 2</span><input type="text" id="phone2" autocomplete="off" maxlength="32"></label>
+      <label class="f"><span data-i18n="p3">Telefon 3</span><input type="text" id="phone3" autocomplete="off" maxlength="32"></label>
+      <label class="f"><span data-i18n="bal">Yıl sonu bakiye</span><input type="text" id="balanceAmount" placeholder="250000" autocomplete="off" maxlength="48"></label>
+      <label class="f"><span data-i18n="cur">Para birimi</span><input type="text" id="balanceCurrency" placeholder="USD" autocomplete="off" maxlength="12"></label>
+      <label class="f"><span data-i18n="open">Hesap açılış tarihi</span><input type="text" id="openingDate" placeholder="2010-01-01" autocomplete="off" maxlength="32"></label>
     </div>
     <p class="note" style="margin-top:10px" data-i18n="s5note">Bakiye ve açılış tarihi boş kalabilir. Bakiye tek hesabın yıl sonu değeridir. Dolar dışındaki tutarda kur hesabı sizdedir.</p>
     <div class="checks">
@@ -286,7 +288,7 @@
     </div>
     <p class="subhead" data-i18n="s4">ABD bağlantısı</p>
     <div class="grid">
-      <label class="f"><span data-i18n="poa">Vekil adres ülkesi</span><input type="text" id="poaCountry" placeholder="US"></label>
+      <label class="f"><span data-i18n="poa">Vekil adres ülkesi</span><input type="text" id="poaCountry" placeholder="US" autocomplete="off" maxlength="80"></label>
     </div>
     <div class="checks">
       <label class="c"><input type="checkbox" id="standingUs"> <span data-i18n="stand">ABD hesabına düzenli ödeme talimatı var</span></label>
@@ -304,9 +306,9 @@
     <p class="note" data-i18n="priorNote">Dosyada daha eski bir öz beyan varsa. Boşsa bu bölüm atlanır.</p>
     <div class="grid">
       <label class="f"><span data-i18n="priorDate">Önceki öz beyan tarihi</span>
-        <input type="text" id="priorCertDate" placeholder="2016-05-01"></label>
+        <input type="text" id="priorCertDate" placeholder="2016-05-01" autocomplete="off" maxlength="32"></label>
       <label class="f"><span data-i18n="priorRes">Önceki beyandaki mukimlik ülkeleri</span>
-        <input type="text" id="priorResidences" placeholder="TR veya DE"></label>
+        <input type="text" id="priorResidences" placeholder="TR veya DE" autocomplete="off" maxlength="120"></label>
       <label class="f"><span data-i18n="priorUs">Önceki beyanda ABD kişisi</span>
         <select id="priorUsPerson">
           <option value="" data-i18n="priorEmpty">Sorulmadı</option>
@@ -331,7 +333,7 @@
   <section class="card">
     <div class="card-h"><span class="step">5</span><h2 data-i18n="batch">Toplu kontrol</h2></div>
     <p class="note" data-i18n="batchNote">Yalnızca örnek veri yapıştırın. Gerçek müşteri dosyasını bu kutuya koymayın. Sonuç CSV'si noktalı virgül kullanır.</p>
-    <textarea id="batchCsv" rows="5" spellcheck="false"></textarea>
+    <textarea id="batchCsv" rows="5" spellcheck="false" autocomplete="off"></textarea>
     <div class="actions" style="margin-top:12px">
       <button type="button" class="primary" id="runBatch" data-i18n="runBatch">Toplu kontrol et</button>
       <button type="button" id="loadSample" data-i18n="loadSample">Örnek CSV</button>
@@ -342,7 +344,7 @@
 </main>
 <footer class="site-foot">
   <p class="decision" data-i18n="decision">Bu bir karar destek aracıdır.</p>
-  <p><a href="https://github.com/berkehanbudak1-byte/fatca-crs-kontrol">github.com/berkehanbudak1-byte/fatca-crs-kontrol</a></p>
+  <p><a href="https://github.com/berkehanbudak1-byte/fatca-crs-kontrol" rel="noopener noreferrer">github.com/berkehanbudak1-byte/fatca-crs-kontrol</a></p>
   <p data-i18n="foot1">Araç belgeyi görmez ve TIN'in kişiye ait olduğunu doğrulamaz. Tüzel müşteri için ayrı öz beyan gerekir.</p>
   <p data-i18n="foot2">Ayrıntılı kural tablosu docs/kapsam.md dosyasındadır. Ülke listesi 2023 yedeğidir.</p>
 </footer>
@@ -530,7 +532,7 @@ function docOf(d) { return LANG === "en" ? d.docEn : d.doc; }
 function render(out) {
   last = out;
   var box = $("results");
-  box.innerHTML = "";
+  box.textContent = "";
   markFields(out.findings || []);
   var v = out.verdict || {};
   var cls = v.code === "bad" ? "v-bad" : v.code === "man" ? "v-man" : v.code === "none" ? "v-bad" : "v-ok";
@@ -630,7 +632,12 @@ function clearForm() {
   });
   clearFieldErrors();
   last = null;
-  $("results").innerHTML = '<div class="empty-box">' + t("empty") + "</div>";
+  var resBox = $("results");
+  resBox.textContent = "";
+  var emptyBox = document.createElement("div");
+  emptyBox.className = "empty-box";
+  emptyBox.textContent = t("empty");
+  resBox.appendChild(emptyBox);
   updateTinHint();
 }
 
@@ -653,7 +660,7 @@ var EMBEDDED_SAMPLE = [
 function renderBatch(summary) {
   lastBatch = summary;
   var box = $("batchOut");
-  box.innerHTML = "";
+  box.textContent = "";
   if (!summary || summary.error) {
     var p = document.createElement("p");
     p.className = "note";
@@ -712,15 +719,19 @@ function renderBatch(summary) {
 }
 
 function downloadCsv(content, filename) {
+  var safeName = String(filename || "ornek-sonuc.csv").replace(/[^A-Za-z0-9._-]/g, "_") || "ornek-sonuc.csv";
   var blob = new Blob([content], { type: "text/csv;charset=utf-8" });
   var url = URL.createObjectURL(blob);
-  var a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  try {
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = safeName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }
 
 $("lang").addEventListener("click", function () {

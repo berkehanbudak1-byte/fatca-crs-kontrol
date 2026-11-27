@@ -381,6 +381,29 @@ test("her kural en az bir testte tetiklendi", function () {
   assert.deepStrictEqual(missing, []);
 });
 
+test("HTML dosyası katı sha256 CSP özetiyle mühürlüdür ve script-src unsafe-inline içermez", function () {
+  var crypto = require("crypto");
+  var html = fs.readFileSync(path.join(__dirname, "..", "FATCA-CRS-Kontrol.html"), "utf8").replace(/\r\n?/g, "\n");
+  var cspMatch = html.match(/<meta\s+http-equiv="Content-Security-Policy"\s+content="([^"]+)"/i);
+  assert.ok(cspMatch, "Content-Security-Policy meta etiketi eksik");
+  var csp = cspMatch[1];
+  var scriptDirective = csp.split(";").map(function (s) { return s.trim(); }).find(function (s) {
+    return s.indexOf("script-src ") === 0;
+  });
+  assert.ok(scriptDirective, "script-src yönergesi eksik");
+  assert.strictEqual(scriptDirective.indexOf("'unsafe-inline'"), -1, "script-src unsafe-inline içermemeli");
+  var re = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
+  var m;
+  var inlineCount = 0;
+  while ((m = re.exec(html)) !== null) {
+    if (/\bsrc\s*=/i.test(m[1] || "")) continue;
+    inlineCount += 1;
+    var hash = "'sha256-" + crypto.createHash("sha256").update(m[2], "utf8").digest("base64") + "'";
+    assert.ok(scriptDirective.indexOf(hash) !== -1, "CSP içinde eksik betik özeti: " + hash);
+  }
+  assert.ok(inlineCount >= 1, "En az bir satır içi betik özeti doğrulanmalı");
+});
+
 if (failed) {
   console.error(failed + " test başarısız");
   process.exit(1);

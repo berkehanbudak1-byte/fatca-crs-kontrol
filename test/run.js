@@ -376,11 +376,6 @@ test("kapsam tablosu her kuralı kaynakla listeler", function () {
   });
 });
 
-test("her kural en az bir testte tetiklendi", function () {
-  var missing = Object.keys(E.RULES).filter(function (id) { return !fired[id]; });
-  assert.deepStrictEqual(missing, []);
-});
-
 test("güvenlik: CSV/Excel formül enjeksiyonu etkisizleştirilir", function () {
   var payloads = [
     "=CMD|'/C calc'!A0",
@@ -429,7 +424,12 @@ test("güvenlik: CSV/Excel formül enjeksiyonu etkisizleştirilir", function () 
 test("güvenlik: prototype pollution ve Object.prototype anahtarları engellenir", function () {
   ["__proto__", "constructor", "toString", "valueOf", "hasOwnProperty"].forEach(function (k) {
     assert.strictEqual(E.ulkeCoz(k), null, "ulkeCoz(" + k + ")");
-    assert.strictEqual(E.evaluateRow(clean({ musteri_tipi: k }), { today: TODAY }).scope, "individual", "tuzelMi(" + k + ")");
+    var out = E.evaluateRow(clean({ musteri_tipi: k }), { today: TODAY });
+    assert.strictEqual(out.scope, "unknown", "tanınmayan tip bireysel sayılmamalı: " + k);
+    assert.notStrictEqual(out.verdict.label, "Makul");
+    assert.strictEqual(out.verdict.code, "man");
+    assert.ok(out.findings.some(function (f) { return f.id === "E03"; }));
+    out.findings.forEach(function (f) { fired[f.id] = 1; });
     assert.strictEqual(E.evaluateRow(clean({ abd_hesabina_duzenli_talimat: k }), { today: TODAY }).findings.some(function (f) { return f.id === "F06"; }), false);
   });
   var protoCsv = "__proto__;constructor;mukimlik_ulke_1;ikamet_adresi_ulke;tin_1;ozbeyan_tarihi\n1;2;TR;TR;10000000146;01.03.2024";
@@ -497,6 +497,133 @@ test("güvenlik: HTML innerHTML yok, CSP SHA-256 hash ve referrer politikası do
   assert.ok(pkg.scripts.serve.indexOf("--bind 127.0.0.1") !== -1, "serve scripti 127.0.0.1 loopback bağlamalı");
 });
 
+test("sürüm 1.3.0", function () {
+  assert.strictEqual(E.SURUM, "1.3.0");
+  var pkg = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf8"));
+  assert.strictEqual(pkg.version, "1.3.0");
+});
+
+test("AU-B-001 tüzel tipler ve tanınmayan tip", function () {
+  ["T", "Tüzel", "Tüzel Kişi", "TÜZEL KİŞİ", "LTD", "LTD. ŞTİ.", "A.Ş.", "A.S.", "Anonim Şirket", "Limited Şirket", "Ticari", "Vakıf", "Dernek", "Kurumsal", "entity"].forEach(function (tip) {
+    var out = E.evaluateRow(clean({ musteri_tipi: tip }), { today: TODAY });
+    assert.strictEqual(out.scope, "entity", tip);
+    assert.strictEqual(out.verdict.label, "Manuel inceleme", tip);
+    assert.notStrictEqual(out.verdict.label, "Makul", tip);
+    assert.ok(out.findings.some(function (f) { return f.id === "E01"; }), tip);
+    out.findings.forEach(function (f) { fired[f.id] = 1; });
+  });
+  ["", "G", "Gerçek", "Bireysel", "gerçek kişi", "individual"].forEach(function (tip) {
+    var out = E.evaluateRow(clean({ musteri_tipi: tip }), { today: TODAY });
+    assert.strictEqual(out.scope, "individual", JSON.stringify(tip));
+    assert.strictEqual(out.verdict.label, "Makul", JSON.stringify(tip));
+  });
+  ["XYZ", "Personel", "VIP", "Musteri"].forEach(function (tip) {
+    var out = E.evaluateRow(clean({ musteri_tipi: tip }), { today: TODAY });
+    assert.strictEqual(out.scope, "unknown", tip);
+    assert.strictEqual(out.verdict.label, "Manuel / kapsam belirsiz", tip);
+    assert.strictEqual(out.verdict.code, "man");
+    assert.notStrictEqual(out.verdict.label, "Makul");
+    setEq(out.findings.map(function (f) { return f.id; }), ["E03"], tip);
+    out.findings.forEach(function (f) { fired[f.id] = 1; });
+  });
+  var form = E.checkForm({ fullName: "Ornek Ltd", accountHolderType: "LTD" }, { today: TODAY });
+  assert.strictEqual(form.scope, "entity");
+  assert.ok(form.findings.some(function (f) { return f.id === "E01"; }));
+});
+
+test("AU-B-011 TR TIN sağlama abcd ve hatalı TCKN geçmez", function () {
+  assert.strictEqual(E.tcknGecerli("10000000146"), true);
+  assert.strictEqual(E.tcknGecerli("10000000147"), false);
+  assert.strictEqual(E.tinDogrula("TR", "abcd"), "hata");
+  assert.strictEqual(E.tinDogrula("TR", "ABCD"), "hata");
+  assert.strictEqual(E.tinDogrula("TR", "10000000147"), "hata");
+  assert.strictEqual(E.tinDogrula("TR", "12345678901"), "hata");
+  assert.strictEqual(E.vknGecerli("1234567890"), true);
+  assert.strictEqual(E.tinDogrula("TR", "1234567890"), "ok");
+  assert.strictEqual(E.tinDogrula("TR", "1234567891"), "hata");
+  ["abcd", "10000000147", "01234567890"].forEach(function (tin) {
+    var out = E.evaluateRow(clean({ tin_1: tin }), { today: TODAY });
+    assert.notStrictEqual(out.verdict.label, "Makul", tin);
+    assert.ok(out.findings.some(function (f) { return f.id === "C13" || f.id === "C14"; }), tin + " " + out.findings.map(function (f) { return f.id; }).join(","));
+  });
+});
+
+test("AU-B-012 her mukimlik için ayrı TIN veya neden", function () {
+  var eksik = E.evaluateRow(clean({ mukimlik_ulke_2: "DE" }), { today: TODAY });
+  assert.ok(eksik.findings.some(function (f) { return f.id === "C08"; }));
+  assert.ok(eksik.findings.some(function (f) { return f.id === "C16"; }));
+  assert.strictEqual(eksik.verdict.label, "Makul değil");
+
+  var ayniAlan = E.evaluateRow(clean({ mukimlik_ulke_1: "TR;DE" }), { today: TODAY });
+  assert.ok(ayniAlan.findings.some(function (f) { return f.id === "C08"; }));
+  assert.strictEqual(ayniAlan.verdict.label, "Makul değil");
+
+  var neden = E.evaluateRow(clean({ mukimlik_ulke_2: "DE", tin_yok_nedeni_2: "B", tin_yok_aciklama: "numara henuz cikmadi" }), { today: TODAY });
+  assert.ok(neden.findings.every(function (f) { return f.id !== "C08"; }));
+  assert.strictEqual(neden.verdict.label, "Makul");
+
+  var cakisma = E.evaluateRow(clean({ mukimlik_ulke_2: "DE", tin_yok_nedeni_2: "A" }), { today: TODAY });
+  assert.ok(cakisma.findings.some(function (f) { return f.id === "C10"; }));
+  assert.strictEqual(cakisma.verdict.label, "Makul değil");
+
+  var form = E.checkForm({
+    fullName: "Ornek Kisi",
+    accountHolderType: "individual",
+    dateOfBirth: "1985-05-05",
+    declarationDate: "2024-03-01",
+    signed: true,
+    citizenship: "TR",
+    birthCountry: "TR",
+    residenceCountry: "TR",
+    taxResidences: ["TR", "DE"],
+    tin: "10000000146",
+    addressCountry: "TR",
+    mailCountry: "TR",
+    kycCountry: "TR",
+    phone1: "+90 532 000 00 01"
+  }, { today: TODAY });
+  assert.ok(form.findings.some(function (f) { return f.id === "C08"; }), form.findings.map(function (f) { return f.id; }).join(","));
+  assert.strictEqual(form.verdict.label, "Makul değil");
+
+  var kyc = E.checkForm({
+    fullName: "Ornek Kisi",
+    accountHolderType: "individual",
+    dateOfBirth: "1985-05-05",
+    declarationDate: "2024-03-01",
+    signed: true,
+    citizenship: "TR",
+    birthCountry: "TR",
+    residenceCountry: "DE",
+    taxResidences: ["TR", "DE"],
+    tin: "",
+    noTinReason: "A",
+    addressCountry: "DE",
+    kycCountry: "TR",
+    phone1: "+49 151 000000"
+  }, { today: TODAY });
+  assert.ok(kyc.findings.some(function (f) { return f.id === "C08"; }), "ikinci ülke TIN");
+  assert.ok(kyc.findings.some(function (f) { return f.id === "C10"; }));
+  assert.ok(kyc.findings.every(function (f) { return f.id !== "C24"; }), "KYC listede iken C24 yok");
+
+  var hold = E.checkForm({
+    fullName: "Ornek Kisi", accountHolderType: "individual", dateOfBirth: "1985-05-05",
+    declarationDate: "2024-03-01", signed: true, citizenship: "TR", birthCountry: "TR",
+    res1: "TR", tin1: "10000000146", addressCountry: "TR", mailCountry: "TR", kycCountry: "TR",
+    phone1: "+90 532 000 00 01",
+    address: { country: "TR", holdMail: true, soleAddress: true }
+  }, { today: TODAY });
+  assert.ok(hold.findings.some(function (f) { return f.id === "F08"; }));
+
+  var uc = E.evaluateRow(clean({
+    mukimlik_ulke_2: "DE",
+    tin_2: "65929970489",
+    mukimlik_ulke_3: "FR",
+    tin_3: ""
+  }), { today: TODAY });
+  assert.ok(uc.findings.some(function (f) { return f.id === "C08"; }));
+  assert.strictEqual(uc.verdict.label, "Makul değil");
+});
+
 test("güvenlik: toplu-kontrol CLI yol doğrulaması", function () {
   var cli = require("../scripts/toplu-kontrol");
   var sampleIn = path.join(__dirname, "..", "examples", "ornek-musteriler.csv");
@@ -505,6 +632,11 @@ test("güvenlik: toplu-kontrol CLI yol doğrulaması", function () {
   assert.throws(function () { cli.validateCliPaths(path.join(__dirname, ".."), "/tmp/out.csv"); }, /düzenli bir dosya/);
   var ok = cli.validateCliPaths(sampleIn, path.join(require("os").tmpdir(), "fatca-test-out.csv"));
   assert.strictEqual(ok.inputPath, path.resolve(sampleIn));
+});
+
+test("her kural en az bir testte tetiklendi", function () {
+  var missing = Object.keys(E.RULES).filter(function (id) { return !fired[id]; });
+  assert.deepStrictEqual(missing, []);
 });
 
 if (failed) {

@@ -30,7 +30,7 @@ Katalog kuralları F01–F11 ve C01–C20'dır. Altlarındaki satırlar, formda 
 | C05 | Orta | KYC'deki ikamet adresi ülkesi | CRS Yorumu, IV. Bölüm, par. 22 (karşılaştırılacak adres yoksa test tamamlanamaz) |
 | C06 | Düşük | Belge yok; tek başına karar değiştirmez | CRS Bölüm III.B(2)(c) telefon göstergesi, makullükte bilgi olarak |
 | C07 | Düşük | Belge yok; tek başına karar değiştirmez | CRS Yorumu, IV. Bölüm (uyruk, mukimlikten ayrıdır) |
-| C08 | Yüksek | TIN veya A / B / C neden kodu | CRS Bölüm I TIN; OECD örnek öz beyan formu; Yorum I, par. 28 (reasonable efforts) |
+| C08 | Yüksek | TIN veya A / B / C neden kodu | CRS Bölüm I TIN; OECD örnek öz beyan formu; Yorum I, par. 28 (reasonable efforts). Her beyan edilen mukimlik için ayrı TIN veya neden aranır. `TR;DE` gibi tek alandaki birden fazla ülke de ayrılır; alandaki TIN yalnız ilk ülkeyi kapatır |
 | C09 | Orta | A, B veya C kodu | OECD örnek öz beyan formu, neden kodu alanı |
 | C10 | Yüksek | TIN | OECD formunda A: ülke mukimlerine TIN vermez. TR, US, DE, NL, GB, FR, AZ, RU, UA verir (OECD TIN formları) |
 | C11 | Orta | Neden B için yazılı açıklama | OECD örnek öz beyan formu, neden B |
@@ -65,7 +65,8 @@ Katalog kuralları F01–F11 ve C01–C20'dır. Altlarındaki satırlar, formda 
 | R01 | Yüksek | İlişki yöneticisinin notu ve gerekirse yeni öz beyan | CRS Yorumu, IV. Bölüm, par. 25: kurum yanlış olduğunu biliyor veya bilmesi gerekiyorsa öz beyan makul değildir |
 | R02 | Orta | İlişki yöneticisi sorgu notu | IGA Ek I yüksek değerli hesap incelemesi; CRS'de yüksek değerli hesapta ek sorgu |
 | R09 | Orta (yalnız ABD ise Düşük) | Güncel GİB bildirim listesi kaydı | CRS Bölüm I raporlanabilir ülke. ABD CRS ortağı değildir; FATCA yolu ayrıdır. Listede gömülü olan GİB 2023 Ek 2 yedeğidir |
-| E01 | Orta | W-8BEN-E ve kontrol eden kişi öz beyanı | IGA Ek I Bölüm IV–V ve CRS Bölüm V–VI tüzel hesaplar. Bu sürüm onları incelemez, yalnızca ayırır |
+| E01 | Orta | W-8BEN-E ve kontrol eden kişi öz beyanı | IGA Ek I Bölüm IV–V ve CRS Bölüm V–VI tüzel hesaplar. Bu sürüm onları incelemez, yalnızca ayırır. Kapalı liste: T, tüzel, tüzel kişi, kurum, kurumsal, şirket, ticari, LTD, A.Ş., anonim şirket, limited şirket, vakıf, dernek, kooperatif, holding, entity ve aynı anlama gelen yazımlar |
+| E03 | Orta | Hesap türünü gerçek kişi veya tüzel olarak netleştirin | Aynı maddeler. `musteri_tipi` dolu ama kapalı listede yoksa sonuç **Manuel / kapsam belirsiz** olur. Gerçek kişi kuralları çalışmaz. Sonuç Makul olamaz |
 
 ## TIN biçimi
 
@@ -112,5 +113,7 @@ Araçtaki liste, OECD sayfasına gömülü geniş tablodur. Bazı ikincil kaynak
 - ABD dışı bir ülkeye düzenli talimat veya o ülkede vekil, ayrı CRS göstergesi olarak taranmaz. Telefonda ve adreste CRS tarafı C03, C04 ve C06 ile sınırlıdır. ABD talimatı ve vekil ülkesi sorulur.
 - Cure için 90 günlük süre sayacı.
 - Python TINChecker köprüsü. Aynı iş, ek program kurmadan bu motorda yapılır.
+- Bir yıllık öz beyan zaman aşımı ve 18 yaş uyarısı. 2017 CRS metninde sabit bir süre yoktur. Çocuk ve vasi hesabı bu sürümün dışındadır.
+- Neden A/C çelişkisi, doğrulanmış dokuz ülke (TR, US, DE, NL, GB, FR, AZ, RU, UA) ile sınırlıdır. Listenin dışı sessizce kabul edilmez diye genişletilmedi; kaynak tablo bu çalışmada satır satır doğrulanmadı.
 
 Eski ekrandaki C1–C7 ve F1–F9 numaraları bu tabloyla değiştirildi. TIN eksikliği C08, adres çelişkisi C03, ABD doğum yeri F02 oldu. Tek motor `lib/engine.js` dosyasındadır.

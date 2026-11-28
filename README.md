@@ -53,6 +53,12 @@ Node.js kuruluysa aynı dosyayı komutla da işleyebilirsiniz:
 node scripts/toplu-kontrol.js examples/ornek-musteriler.csv examples/ornek-sonuc.csv
 ```
 
+## Sürüm
+
+Kanonik motor `lib/engine.js` **1.3.0**. Değişiklikler `CHANGELOG.md` dosyasındadır. Kural farklarının senaryo tablosu `docs/konsolidasyon-fark-tablosu.md` dosyasındadır.
+
+Python aracı, ayrı JS doğrulayıcılar ve eski yerel HTML kopyası silinmedi. 2026-11-28 tarihinde `archive/` altına alındı. Yeni kontrol bu motorla yapılır.
+
 ## Test
 
 Geliştirme makinesinde:

@@ -1,0 +1,7 @@
+{
+  "_aciklama": "Ülke bazlı TIN formatları (isteğe bağlı üst kural). 142 ülkenin kuralları scripts/tin-rules.js içinde yer alır ve bu dosyada açık tanım yoksa onlar uygulanır. Burada bir ülke tanımlanırsa o tanım öncelikli olur. Ne bu dosyada ne tabloda olan ülke (ör. TR) manuel listeye düşer.",
+  "_ornek": {
+    "XX": { "individual": "^[A-Z]\\d{8}[A-Z]$", "entity": "^\\d{9}$" }
+  },
+  "US": { "individual": "^(\\d{3}-\\d{2}-\\d{4}|9\\d{2}-(5\\d|6[0-5]|7\\d|8[0-8]|9[0-2]|9[4-9])-\\d{4})$" }
+}
